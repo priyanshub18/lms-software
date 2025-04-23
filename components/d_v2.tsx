@@ -153,9 +153,9 @@ export default function DashboardLayout({ children, userRole }: DashboardLayoutP
   const navItems = getNavItems();
 
   return (
-    <div className='flex h-screen w-full overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100'>
-      <SidebarProvider>
-        <Sidebar className='border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-full'>
+    <SidebarProvider>
+      <div className='flex min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100'>
+        <Sidebar className='border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900'>
           <SidebarHeader className='flex h-16 items-center border-b border-gray-200 dark:border-gray-800 px-4'>
             <Link href='/' className='flex items-center gap-2 font-bold'>
               <BookOpen className='h-6 w-6 text-blue-600 dark:text-blue-400' />
@@ -208,9 +208,7 @@ export default function DashboardLayout({ children, userRole }: DashboardLayoutP
             </div>
           </SidebarFooter>
         </Sidebar>
-
-        {/* Main content wrapper - takes all remaining space */}
-        <div className='flex-1 flex flex-col min-w-0'>
+        <div className='flex-1 flex flex-col w-full'>
           <header className='sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6'>
             <SidebarTrigger className='mr-2 md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' />
 
@@ -241,14 +239,13 @@ export default function DashboardLayout({ children, userRole }: DashboardLayoutP
             </div>
           </header>
 
-          {/* Main content area - will expand to fill available space */}
           <main className='flex-1 overflow-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-950 w-full'>{children}</main>
 
           <footer className='border-t border-gray-200 dark:border-gray-800 py-3 px-6 text-center text-sm text-gray-500 dark:text-gray-400'>
             <p>© {new Date().getFullYear()} Placement Prep LMS. All rights reserved.</p>
           </footer>
         </div>
-      </SidebarProvider>
-    </div>
+      </div>
+    </SidebarProvider>
   );
 }
