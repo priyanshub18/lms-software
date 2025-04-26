@@ -113,8 +113,8 @@ export default function DashboardLayout({ children, userRole }: DashboardLayoutP
           notification: 0,
         },
         {
-          title: "Reports",
-          href: `/dashboard/${userRole}/reports`,
+          title: "Attendance",
+          href: `/dashboard/${userRole}/attendence`,
           icon: PieChart,
           notification: 0,
         },
