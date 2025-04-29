@@ -17,14 +17,25 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DashboardLayout from "@/components/dashboard-layout";
 import ProgressBar from "./_components/ProgressBar";
-
+import { useTheme } from "next-themes";
 export default function StudentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   useEffect(() => {
+    console.log("theme", theme);
     setIsLoaded(true);
   }, []);
+
+
+  useEffect(() => {
+    console.log("current Theme", theme);
+    if (resolvedTheme) {
+      console.log("resolvedTheme", resolvedTheme);
+      setTheme(resolvedTheme); // Force set the theme to what next-themes resolved
+    }
+  }, [resolvedTheme, setTheme, theme]);
 
   // Mock student data
   const students = [
@@ -305,8 +316,8 @@ export default function StudentsPage() {
                           </TableCell>
                           <TableCell>
                             <div className='flex items-center gap-3'>
-                              <ProgressBar  value={student.progress} />
-                              
+                              <ProgressBar value={student.progress} />
+
                               {/* <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>{student.progress}%</span> */}
                             </div>
                           </TableCell>

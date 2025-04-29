@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, BookOpen, ChevronRight, Users } from "lucide-react";
+import { BarChart3, BookOpen, ChevronRight, Users, Plus } from "lucide-react";
 import DashboardLayout from "@/components/dashboard-layout";
 
 export default function TrainerDashboardPage() {
@@ -97,105 +97,120 @@ export default function TrainerDashboardPage() {
 
   return (
     <DashboardLayout userRole='trainer'>
-      <motion.div initial='initial' animate='animate' variants={staggerContainer} className='space-y-6'>
+      <motion.div initial='initial' animate='animate' variants={staggerContainer} className='space-y-8 max-w-7xl mx-auto px-4 py-6'>
         <motion.div variants={fadeInUp} className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
-          <div className='space-y-1'>
-            <h1 className='text-3xl font-semibold tracking-tight'>Welcome back, Jane</h1>
-            <p className='text-muted-foreground'>Monitor your courses and student performance</p>
+          <div>
+            <h1 className='text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent'>Welcome back, Jane</h1>
+            <p className='text-slate-500 dark:text-slate-400 mt-2 text-lg'>Monitor your courses and student performance</p>
           </div>
-          <Button className='bg-blue-600 hover:bg-blue-700 text-white' asChild>
+          <Button size='lg' className='bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300' asChild>
             <Link href='/dashboard/trainer/courses/create'>
-              <span className='flex items-center gap-2'>
-                Create Course <ChevronRight size={16} />
-              </span>
+              <Plus size={18} className='mr-2' />
+              Create New Course
             </Link>
           </Button>
         </motion.div>
 
         <div className='grid gap-6 md:grid-cols-3'>
           <motion.div variants={fadeInUp} className='md:col-span-1'>
-            <Card className='shadow-md border-0 overflow-hidden h-full'>
-              <CardHeader className='bg-blue-50 dark:bg-blue-950 border-b pb-3'>
-                <div className='flex items-center gap-2'>
-                  <Users className='h-5 w-5 text-blue-600' />
-                  <CardTitle className='text-lg font-medium'>Total Students</CardTitle>
+            <Card className='shadow-lg border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden h-full'>
+              <CardHeader className='bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 pb-4'>
+                <div className='flex items-center gap-3'>
+                  <div className='p-2 bg-blue-600 rounded-lg text-white'>
+                    <Users className='h-5 w-5' />
+                  </div>
+                  <CardTitle className='text-xl font-semibold'>Total Students</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className='pt-6'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-3xl font-bold'>105</span>
-                  <span className='text-sm font-medium text-green-600 bg-green-100 dark:bg-green-900/30 rounded-full px-2 py-1'>+12% this month</span>
+                  <span className='text-4xl font-bold text-slate-800 dark:text-slate-200'>105</span>
+                  <span className='text-sm font-medium text-green-600 bg-green-100 dark:bg-green-900/30 rounded-full px-3 py-1 flex items-center'>+12% this month</span>
                 </div>
-                <p className='text-sm text-muted-foreground mt-2'>Across all your active courses</p>
+                <p className='text-sm text-slate-500 dark:text-slate-400 mt-3'>Across all your active courses</p>
               </CardContent>
             </Card>
           </motion.div>
 
           <motion.div variants={fadeInUp} className='md:col-span-1'>
-            <Card className='shadow-md border-0 overflow-hidden h-full'>
-              <CardHeader className='bg-blue-50 dark:bg-blue-950 border-b pb-3'>
-                <div className='flex items-center gap-2'>
-                  <BookOpen className='h-5 w-5 text-blue-600' />
-                  <CardTitle className='text-lg font-medium'>Active Courses</CardTitle>
+            <Card className='shadow-lg border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden h-full'>
+              <CardHeader className='bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 pb-4'>
+                <div className='flex items-center gap-3'>
+                  <div className='p-2 bg-blue-600 rounded-lg text-white'>
+                    <BookOpen className='h-5 w-5' />
+                  </div>
+                  <CardTitle className='text-xl font-semibold'>Active Courses</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className='pt-6'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-3xl font-bold'>3</span>
-                  <span className='text-sm font-medium text-blue-600 bg-blue-100 dark:bg-blue-900/30 rounded-full px-2 py-1'>All Running</span>
+                  <span className='text-4xl font-bold text-slate-800 dark:text-slate-200'>3</span>
+                  <span className='text-sm font-medium text-blue-600 bg-blue-100 dark:bg-blue-900/30 rounded-full px-3 py-1 flex items-center'>All Running</span>
                 </div>
-                <p className='text-sm text-muted-foreground mt-2'>Successfully progressing courses</p>
+                <p className='text-sm text-slate-500 dark:text-slate-400 mt-3'>Successfully progressing courses</p>
               </CardContent>
             </Card>
           </motion.div>
 
           <motion.div variants={fadeInUp} className='md:col-span-1'>
-            <Card className='shadow-md border-0 overflow-hidden h-full'>
-              <CardHeader className='bg-blue-50 dark:bg-blue-950 border-b pb-3'>
-                <div className='flex items-center gap-2'>
-                  <BarChart3 className='h-5 w-5 text-blue-600' />
-                  <CardTitle className='text-lg font-medium'>Avg. Completion</CardTitle>
+            <Card className='shadow-lg border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden h-full'>
+              <CardHeader className='bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 pb-4'>
+                <div className='flex items-center gap-3'>
+                  <div className='p-2 bg-blue-600 rounded-lg text-white'>
+                    <BarChart3 className='h-5 w-5' />
+                  </div>
+                  <CardTitle className='text-xl font-semibold'>Avg. Completion</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className='pt-6'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-3xl font-bold'>61.7%</span>
-                  <span className='text-sm font-medium text-amber-600 bg-amber-100 dark:bg-amber-900/30 rounded-full px-2 py-1'>Moderate</span>
+                  <span className='text-4xl font-bold text-slate-800 dark:text-slate-200'>61.7%</span>
+                  <span className='text-sm font-medium text-amber-600 bg-amber-100 dark:bg-amber-900/30 rounded-full px-3 py-1 flex items-center'>Moderate</span>
                 </div>
-                <p className='text-sm text-muted-foreground mt-2'>Course completion percentage</p>
+                <p className='text-sm text-slate-500 dark:text-slate-400 mt-3'>Course completion percentage</p>
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
-        <div className='grid gap-6 md:grid-cols-3'>
+        <div className='grid gap-8 md:grid-cols-3'>
           <motion.div variants={fadeInUp} className='md:col-span-2'>
-            <Card className='shadow-md border-0 overflow-hidden'>
-              <CardHeader className='bg-blue-50 dark:bg-blue-950 border-b'>
-                <CardTitle className='text-lg font-medium'>My Courses</CardTitle>
-                <CardDescription>Progress overview of your courses</CardDescription>
+            <Card className='shadow-lg border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden'>
+              <CardHeader className='bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 border-b border-slate-200 dark:border-slate-700'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <CardTitle className='text-2xl font-semibold'>My Courses</CardTitle>
+                    <CardDescription className='text-slate-600 dark:text-slate-400 mt-1'>Progress overview of your courses</CardDescription>
+                  </div>
+                  <Button variant='outline' size='sm' className='border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400' asChild>
+                    <Link href='/dashboard/trainer/courses'>
+                      View All
+                      <ChevronRight size={16} className='ml-1' />
+                    </Link>
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className='pt-6'>
                 <motion.div variants={staggerContainer} initial='initial' animate='animate' className='space-y-6'>
                   {courses.map((course, index) => (
-                    <motion.div key={course.id} variants={fadeInUp} transition={{ delay: index * 0.1 }} className='group relative space-y-3 bg-slate-50 dark:bg-slate-900 p-4 rounded-lg hover:shadow-md transition-all duration-200'>
-                      <div className='flex items-center justify-between'>
+                    <motion.div key={course.id} variants={fadeInUp} transition={{ delay: index * 0.1 }} className='group relative bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300'>
+                      <div className='flex items-center justify-between mb-4'>
                         <div>
-                          <h3 className='font-medium text-lg text-blue-700 dark:text-blue-400'>{course.title}</h3>
+                          <h3 className='font-bold text-xl text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300'>{course.title}</h3>
                           <div className='flex items-center gap-2 mt-1'>
                             <Users className='h-4 w-4 text-slate-500' />
                             <p className='text-sm text-slate-600 dark:text-slate-400'>{course.students} students enrolled</p>
                           </div>
                         </div>
-                        <span className='text-sm font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full'>{course.avgProgress}% complete</span>
+                        <div className={`text-sm font-medium px-3 py-1.5 rounded-full ${course.avgProgress >= 70 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" : course.avgProgress >= 50 ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"}`}>{course.avgProgress}% complete</div>
                       </div>
-                      <div className='relative'>
-                        <Progress value={course.avgProgress} className='h-2 bg-slate-200 dark:bg-slate-700' />
+                      <div className='relative mb-4'>
+                        <Progress value={course.avgProgress} className={`h-2.5 rounded-full ${course.avgProgress >= 70 ? "bg-green-100 dark:bg-green-900/30" : course.avgProgress >= 50 ? "bg-blue-100 dark:bg-blue-900/30" : "bg-amber-100 dark:bg-amber-900/30"}`} />
                       </div>
                       <div className='flex items-center justify-between'>
                         <p className='text-xs text-slate-500 dark:text-slate-400'>Last updated: {new Date(course.lastUpdated).toLocaleDateString()}</p>
-                        <Link href={`/dashboard/trainer/courses/${course.id}`} className='text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center'>
-                          View details <ChevronRight size={14} />
+                        <Link href={`/dashboard/trainer/courses/${course.id}`} className='text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center font-medium group-hover:underline'>
+                          View details <ChevronRight size={16} className='ml-1' />
                         </Link>
                       </div>
                     </motion.div>
@@ -206,32 +221,32 @@ export default function TrainerDashboardPage() {
           </motion.div>
 
           <motion.div variants={fadeInUp} className='md:col-span-1'>
-            <Card className='shadow-md border-0 overflow-hidden h-full'>
+            <Card className='shadow-lg border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden h-full'>
               <Tabs defaultValue='assessments' className='h-full flex flex-col'>
-                <CardHeader className='bg-blue-50 dark:bg-blue-950 border-b'>
-                  <div className='flex items-center justify-between'>
-                    <CardTitle className='text-lg font-medium'>Performance</CardTitle>
-                    <TabsList className='grid grid-cols-2 h-8'>
-                      <TabsTrigger value='assessments' className='text-xs'>
+                <CardHeader className='bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 border-b border-slate-200 dark:border-slate-700'>
+                  <div className='flex items-center justify-between mb-2'>
+                    <CardTitle className='text-2xl font-semibold'>Performance</CardTitle>
+                    <TabsList className='grid grid-cols-2 bg-slate-200/80 dark:bg-slate-700/80 p-1 rounded-lg'>
+                      <TabsTrigger value='assessments' className='text-sm rounded-md'>
                         Assessments
                       </TabsTrigger>
-                      <TabsTrigger value='students' className='text-xs'>
+                      <TabsTrigger value='students' className='text-sm rounded-md'>
                         At Risk
                       </TabsTrigger>
                     </TabsList>
                   </div>
-                  <CardDescription>Review assessment results and student performance</CardDescription>
+                  <CardDescription className='text-slate-600 dark:text-slate-400'>Review results and student progress</CardDescription>
                 </CardHeader>
                 <CardContent className='pt-6 flex-grow overflow-auto'>
                   <TabsContent value='assessments' className='space-y-4 mt-0 h-full'>
                     <motion.div variants={staggerContainer} initial='initial' animate='animate'>
                       {recentAssessments.map((assessment, index) => (
-                        <motion.div key={assessment.id} variants={fadeInUp} transition={{ delay: index * 0.1 }} className='bg-slate-50 dark:bg-slate-900 p-3 rounded-lg mb-3 hover:shadow-sm transition-all duration-200'>
-                          <h3 className='font-medium text-blue-700 dark:text-blue-400'>{assessment.title}</h3>
+                        <motion.div key={assessment.id} variants={fadeInUp} transition={{ delay: index * 0.1 }} className='bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-4 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300'>
+                          <h3 className='font-bold text-slate-800 dark:text-slate-200'>{assessment.title}</h3>
                           <p className='text-sm text-slate-600 dark:text-slate-400 mt-1'>{assessment.course}</p>
-                          <div className='flex items-center justify-between text-xs mt-2'>
-                            <span className='text-slate-500 dark:text-slate-400'>{assessment.submissions} submissions</span>
-                            <span className='rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1'>Avg: {assessment.avgScore}%</span>
+                          <div className='flex items-center justify-between mt-3'>
+                            <span className='text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md text-slate-600 dark:text-slate-300'>{assessment.submissions} submissions</span>
+                            <span className={`text-xs rounded-full px-2.5 py-1 font-medium ${assessment.avgScore >= 80 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" : assessment.avgScore >= 65 ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"}`}>Avg: {assessment.avgScore}%</span>
                           </div>
                         </motion.div>
                       ))}
@@ -240,12 +255,16 @@ export default function TrainerDashboardPage() {
                   <TabsContent value='students' className='space-y-4 mt-0 h-full'>
                     <motion.div variants={staggerContainer} initial='initial' animate='animate'>
                       {lowPerformingStudents.map((student, index) => (
-                        <motion.div key={student.id} variants={fadeInUp} transition={{ delay: index * 0.1 }} className='bg-slate-50 dark:bg-slate-900 p-3 rounded-lg mb-3 border-l-4 border-red-500 hover:shadow-sm transition-all duration-200'>
-                          <h3 className='font-medium'>{student.name}</h3>
-                          <p className='text-sm text-slate-600 dark:text-slate-400 mt-1'>{student.course}</p>
-                          <div className='flex items-center justify-between text-xs mt-2'>
-                            <span className='text-slate-500 dark:text-slate-400'>Progress: {student.progress}%</span>
-                            <span className='rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-1'>Attention Needed</span>
+                        <motion.div key={student.id} variants={fadeInUp} transition={{ delay: index * 0.1 }} className='bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 mb-4 relative overflow-hidden'>
+                          <div className='absolute left-0 top-0 bottom-0 w-1.5 bg-red-500'></div>
+                          <h3 className='font-bold text-slate-800 dark:text-slate-200 pl-2'>{student.name}</h3>
+                          <p className='text-sm text-slate-600 dark:text-slate-400 mt-1 pl-2'>{student.course}</p>
+                          <div className='flex items-center justify-between mt-3 pl-2'>
+                            <div>
+                              <Progress value={student.progress} className='h-2 w-24 bg-slate-200 dark:bg-slate-700' />
+                              <span className='text-xs text-slate-500 dark:text-slate-400 mt-1 block'>{student.progress}% progress</span>
+                            </div>
+                            <span className='text-xs rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2.5 py-1 font-medium'>Attention Needed</span>
                           </div>
                         </motion.div>
                       ))}

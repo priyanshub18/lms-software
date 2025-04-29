@@ -5,7 +5,13 @@ import { ThemeProvider as NextThemesProvider, type ThemeProviderProps } from "ne
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   return (
-    <NextThemesProvider {...props} defaultTheme='light'>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      storageKey="theme"
+      {...props}
+    >
       {children}
     </NextThemesProvider>
   );

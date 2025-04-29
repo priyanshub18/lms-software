@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, CheckCircle, XCircle, Clock, Filter, Calendar, User, CheckSquare, AlertTriangle, RotateCcw, Save } from "lucide-react";
 import DashboardLayout from "@/components/dashboard-layout";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Types
 type Session = {
@@ -668,8 +669,10 @@ export default function AttendanceTrackerPage() {
   };
 
   return (
-    <DashboardLayout userRole='trainer'>
-      <AttendanceTracker course={course} onBack={handleBack} />
-    </DashboardLayout>
+    <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+      <DashboardLayout userRole='trainer'>
+        <AttendanceTracker course={course} onBack={handleBack} />
+      </DashboardLayout>
+    </ThemeProvider>
   );
 }

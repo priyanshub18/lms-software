@@ -256,14 +256,14 @@ export default function InstructorCoursePage() {
           </motion.p>
         </div>
 
-        <motion.div className='flex flex-col sm:flex-row gap-4 w-full md:w-auto' variants={headerVariants}>
+        {/* <motion.div className='flex flex-col sm:flex-row gap-4 w-full md:w-auto' variants={headerVariants}>
           <motion.div variants={buttonVariants} whileHover='hover' whileTap='tap'>
             <Button className='w-full sm:w-auto flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/20' onClick={() => router.push("/dashboard/trainer/courses/create")}>
               <PlusCircle className='h-4 w-4' />
               <span>Create New Course</span>
             </Button>
           </motion.div>
-        </motion.div>
+        </motion.div> */}
       </motion.div>
 
       {/* Instructor Statistics */}
@@ -392,7 +392,7 @@ export default function InstructorCoursePage() {
 
               {/* Revenue and rating */}
               <div className='flex items-center justify-between mb-4'>
-                <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>{course.earnings}</div>
+                {/* <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>{course.earnings}</div> */}
                 <div className='flex items-center'>{renderRating(course.averageRating)}</div>
               </div>
 
@@ -416,15 +416,15 @@ export default function InstructorCoursePage() {
                   Edit
                 </motion.button> */}
 
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className='flex-1 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 text-sm font-medium hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors flex items-center justify-center' onClick={() => router.push(`/dashboard/trainer/courses/module`)}>
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className='flex-1 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 text-sm font-medium hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors flex items-center justify-center' onClick={() => router.push(`/dashboard/trainer/courses/1`)}>
                   <Eye className='h-3.5 w-3.5 mr-1' />
                   Preview
                 </motion.button>
 
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className='flex-1 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center'>
+                {/* <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className='flex-1 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center'>
                   <Trash2 className='h-3.5 w-3.5 mr-1' />
                   Delete
-                </motion.button>
+                </motion.button> */}
               </div>
             </div>
           </motion.div>
@@ -447,12 +447,12 @@ export default function InstructorCoursePage() {
       )}
 
       {/* "Add New Course" Button at bottom */}
-      <motion.div className='mt-8 flex justify-center' initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+      {/* <motion.div className='mt-8 flex justify-center' initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
         <motion.button variants={buttonVariants} whileHover='hover' whileTap='tap' className='py-2.5 px-6 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium shadow-md hover:shadow-lg flex items-center'>
           <PlusCircle className='mr-2 h-5 w-5' />
           Add New Course
         </motion.button>
-      </motion.div>
+      </motion.div> */}
     </motion.div>
   );
 
