@@ -185,7 +185,7 @@ function TrainerAssessmentPage() {
 
   return (
     <DashboardLayout userRole='trainer'>
-      <div className='min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black text-gray-900 dark:text-gray-100 pb-8'>
+      <div className='min-h-screen -m-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black text-gray-900 dark:text-gray-100 pb-8'>
         {/* Header */}
         <header className='bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-800 dark:to-purple-900 text-white py-6 px-6 shadow-lg'>
           <div className='flex justify-between items-center max-w-7xl mx-auto'>
@@ -193,8 +193,8 @@ function TrainerAssessmentPage() {
               <Award className='h-8 w-8 text-yellow-300' />
               <h1 className='text-2xl md:text-3xl font-bold tracking-tight'>Trainer Dashboard</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <button
+            <div className='flex items-center space-x-4'>
+              {/* <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
@@ -203,9 +203,9 @@ function TrainerAssessmentPage() {
                 ) : (
                   <Moon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 )}
-              </button>
-              <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              </button> */}
+              <button className='p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'>
+                <Settings className='w-5 h-5 text-gray-600 dark:text-gray-300' />
               </button>
             </div>
           </div>
@@ -386,7 +386,7 @@ function TrainerAssessmentPage() {
               <div className='flex justify-between items-center mb-6'>
                 <h2 className='text-xl md:text-2xl font-bold text-indigo-700 dark:text-indigo-400'>Assessment Management</h2>
                 <button className='px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 font-medium'>
-                  <Plus size={16} />
+                  <Plus size={16} onClick={() => router.push("/dashboard/trainer/assessments/create")} />
                   Create Assessment
                 </button>
               </div>

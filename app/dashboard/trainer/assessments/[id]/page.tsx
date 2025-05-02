@@ -171,7 +171,7 @@ function AssessmentDetailsPage() {
 
   return (
     <DashboardLayout userRole='trainer'>
-      <div className='min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black text-gray-900 dark:text-gray-100 pb-8'>
+      <div className='min-h-screen -m-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black text-gray-900 dark:text-gray-100 pb-8'>
         {/* Header */}
         <header className='bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-900 text-white py-6 px-6 shadow-lg'>
           <div className='max-w-7xl mx-auto'>

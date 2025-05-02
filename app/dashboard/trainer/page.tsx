@@ -97,7 +97,7 @@ export default function TrainerDashboardPage() {
 
   return (
     <DashboardLayout userRole='trainer'>
-      <motion.div initial='initial' animate='animate' variants={staggerContainer} className='space-y-8 max-w-7xl mx-auto px-4 py-6'>
+      <motion.div initial='initial' animate='animate' variants={staggerContainer} className='space-y-8 max-w-7xl mx-auto '>
         <motion.div variants={fadeInUp} className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
           <div>
             <h1 className='text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent'>Welcome back, Jane</h1>
@@ -191,7 +191,7 @@ export default function TrainerDashboardPage() {
                 </div>
               </CardHeader>
               <CardContent className='pt-6'>
-                <motion.div variants={staggerContainer} initial='initial' animate='animate' className='space-y-6'>
+                <motion.div variants={staggerContainer} initial='initial' animate='animate' className='space-y-6 '>
                   {courses.map((course, index) => (
                     <motion.div key={course.id} variants={fadeInUp} transition={{ delay: index * 0.1 }} className='group relative bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300'>
                       <div className='flex items-center justify-between mb-4'>
