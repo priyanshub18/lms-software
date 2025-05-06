@@ -157,7 +157,7 @@ export default function StudentsPage() {
 
   return (
     <DashboardLayout userRole='trainer'>
-      <div className='space-y-6'>
+      <div className='space-y-6 -m-6'>
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className='bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-100 dark:border-blue-800'>
           <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
             <div>
