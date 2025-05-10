@@ -1,891 +1,626 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Calendar, Clock, FileText, CheckCircle, AlertTriangle, Award, BookOpen, Sparkles, PieChart, Clock3, ThumbsUp, BarChart3, Code2, Star, Download, Send, User, Book } from "lucide-react";
+import React from "react";
+import { useState, useEffect } from "react";
+import { CheckCircle, AlertCircle, Search, Bell, User, Moon, Sun, Calendar, Clock, ChevronDown, Filter, ArrowRight, Bookmark, BookOpen, Code, Monitor, Shield, Database, Trophy, Award, Target, Zap, BarChart as BarChartIcon } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar } from "recharts";
 import DashboardLayout from "@/components/dashboard-layout";
 
-interface Section {
+// Types
+interface Assessment {
   id: number;
   title: string;
-  status: "Completed" | "In Progress" | "Not Started";
-  score: string;
-  timeSpent: string;
-  feedback: string;
-}
-
-interface Resource {
-  name: string;
-  type: "PDF" | "Code";
-}
-
-interface Announcement {
-  date: string;
-  message: string;
-}
-
-interface PeerStats {
-  averageCompletion: number;
-  averageScore: number;
-  topScore: number;
-}
-
-interface AssessmentData {
-  title: string;
-  code: string;
   dueDate: string;
-  status: "Completed" | "In Progress" | "Not Started";
-  timeRemaining: string;
-  progress: number;
-  maxGrade: number;
-  description: string;
-  instructor: string;
-  weightage: string;
-  sections: Section[];
-  resources: Resource[];
-  announcements: Announcement[];
-  peerStats: PeerStats;
+  status: "Upcoming" | "Completed" | "Missed";
+  timeLimit: number | null;
+  questions: number | null;
+  subject: string;
+  completion: number;
+  type: string;
+  icon: React.ReactElement;
+  score?: number;
+  color: string;
+  difficulty?: "Easy" | "Medium" | "Hard";
 }
 
-export default function StudentAssessmentPage() {
+interface CompletionStat {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface ScoreStat {
+  name: string;
+  score: number;
+}
+
+interface MonthlyProgress {
+  name: string;
+  completed: number;
+  total: number;
+}
+
+// Mock data for assessments with enhanced colors
+const mockAssessments: Assessment[] = [
+  {
+    id: 1,
+    title: "Midterm Exam: Data Structures",
+    dueDate: "2025-05-15T14:00:00",
+    status: "Upcoming" as const,
+    timeLimit: 120,
+    questions: 45,
+    subject: "Computer Science",
+    completion: 0,
+    type: "Exam",
+    icon: <Code className='h-10 w-10' />,
+    color: "#8B5CF6", // Vibrant purple
+    difficulty: "Hard",
+  },
+  {
+    id: 2,
+    title: "Weekly Quiz: JavaScript Basics",
+    dueDate: "2025-05-12T23:59:00",
+    status: "Upcoming" as const,
+    timeLimit: 30,
+    questions: 15,
+    subject: "Web Development",
+    completion: 0,
+    type: "Quiz",
+    icon: <Monitor className='h-10 w-10' />,
+    color: "#3B82F6", // Bright blue
+    difficulty: "Medium",
+  },
+  {
+    id: 3,
+    title: "Final Project: Machine Learning",
+    dueDate: "2025-05-30T23:59:00",
+    status: "Upcoming" as const,
+    timeLimit: null,
+    questions: null,
+    subject: "AI & Machine Learning",
+    completion: 25,
+    type: "Project",
+    icon: <BookOpen className='h-10 w-10' />,
+    color: "#EC4899", // Vibrant pink
+    difficulty: "Hard",
+  },
+  {
+    id: 4,
+    title: "Lab Assessment: Database Design",
+    dueDate: "2025-05-08T10:00:00",
+    status: "Completed" as const,
+    timeLimit: 90,
+    questions: 20,
+    subject: "Database Systems",
+    completion: 100,
+    score: 89,
+    type: "Lab",
+    icon: <Database className='h-10 w-10' />,
+    color: "#10B981", // Emerald green
+    difficulty: "Medium",
+  },
+  {
+    id: 5,
+    title: "Peer Review: UI/UX Project",
+    dueDate: "2025-05-05T23:59:00",
+    status: "Completed" as const,
+    timeLimit: null,
+    questions: 5,
+    subject: "UI/UX Design",
+    completion: 100,
+    score: 95,
+    type: "Review",
+    icon: <Bookmark className='h-10 w-10' />,
+    color: "#F59E0B", // Amber
+    difficulty: "Easy",
+  },
+  {
+    id: 6,
+    title: "Pop Quiz: Network Security",
+    dueDate: "2025-05-03T15:30:00",
+    status: "Missed" as const,
+    timeLimit: 20,
+    questions: 10,
+    subject: "Cybersecurity",
+    completion: 0,
+    type: "Quiz",
+    icon: <Shield className='h-10 w-10' />,
+    color: "#EF4444", // Red
+    difficulty: "Medium",
+  },
+];
+
+// Enhanced mock data for statistics
+const completionStats = [
+  { name: "Completed", value: 2, color: "#10B981" }, // emerald
+  { name: "Upcoming", value: 3, color: "#3B82F6" }, // blue
+  { name: "Missed", value: 1, color: "#EF4444" }, // red
+];
+
+const scoreStats = [
+  { name: "Database Systems", score: 89, fullMark: 100 },
+  { name: "UI/UX Design", score: 95, fullMark: 100 },
+  { name: "Web Development", score: 78, fullMark: 100 },
+  { name: "Cybersecurity", score: 82, fullMark: 100 },
+  { name: "AI & ML", score: 91, fullMark: 100 },
+];
+
+const monthlyProgress = [
+  { name: "Jan", completed: 5, total: 5 },
+  { name: "Feb", completed: 4, total: 6 },
+  { name: "Mar", completed: 7, total: 8 },
+  { name: "Apr", completed: 6, total: 7 },
+  { name: "May", completed: 2, total: 6 },
+];
+
+// Enhanced color schemes
+const STATUS_COLORS = {
+  Upcoming: "bg-gradient-to-r from-blue-500 to-indigo-600",
+  Completed: "bg-gradient-to-r from-emerald-500 to-teal-600",
+  Missed: "bg-gradient-to-r from-rose-500 to-pink-600",
+};
+
+const STATUS_TEXT_COLORS = {
+  Upcoming: "text-blue-500 dark:text-blue-400",
+  Completed: "text-emerald-500 dark:text-emerald-400",
+  Missed: "text-rose-500 dark:text-rose-400",
+};
+
+const STATUS_BORDER_COLORS = {
+  Upcoming: "border-blue-500 dark:border-blue-600",
+  Completed: "border-emerald-500 dark:border-emerald-600",
+  Missed: "border-rose-500 dark:border-rose-600",
+};
+
+const PIE_COLORS = ["#10B981", "#3B82F6", "#EF4444"];
+const PIE_COLORS_DARK = ["#059669", "#2563EB", "#DC2626"];
+
+const DIFFICULTY_COLORS = {
+  Easy: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  Medium: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  Hard: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+};
+
+export default function AssessmentsDashboard() {
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [filter, setFilter] = useState<string>("All");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  const [selectedTab, setSelectedTab] = useState<"overview" | "sections" | "resources" | "analytics" | "announcements">("overview");
-  const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  const [progressValue, setProgressValue] = useState<number>(0);
-  const [activeFilter, setActiveFilter] = useState<"all" | "completed" | "in progress" | "not started">("all");
-  const [showAchievement, setShowAchievement] = useState<boolean>(false);
+  const [sortBy, setSortBy] = useState<"dueDate" | "title" | "subject">("dueDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   useEffect(() => {
-    // Simulate progress animation
+    // Simulate loading data
     const timer = setTimeout(() => {
-      setProgressValue(75);
-    }, 500);
+      setAssessments(mockAssessments);
+      setIsLoading(false);
+    }, 1000);
+
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    // Show achievement notification after 3 seconds
-    const timer = setTimeout(() => {
-      setShowAchievement(true);
-      setTimeout(() => setShowAchievement(false), 5000);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleDarkModeToggle = (): void => {
-    setDarkMode(!darkMode);
-    if (!darkMode) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 2000);
-    }
+  const formatDate = (dateString: string): string => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
-  const assessmentData: AssessmentData = {
-    title: "Advanced Data Structures & Algorithms",
-    code: "CS-301",
-    dueDate: "May 15, 2025, 11:59 PM",
-    status: "In Progress",
-    timeRemaining: "3 days, 4 hours",
-    progress: 75,
-    maxGrade: 100,
-    description: "This assessment tests your understanding of advanced data structures, algorithm complexity analysis, and problem-solving techniques. Complete all sections to demonstrate your mastery of the course material.",
-    instructor: "Dr. Emily Chen",
-    weightage: "30% of final grade",
-    sections: [
-      {
-        id: 1,
-        title: "Multiple Choice Questions",
-        status: "Completed",
-        score: "18/20",
-        timeSpent: "45 minutes",
-        feedback: "Good understanding of theoretical concepts. Review heap operations.",
-      },
-      {
-        id: 2,
-        title: "Short Answer Questions",
-        status: "Completed",
-        score: "15/20",
-        timeSpent: "1 hour 10 minutes",
-        feedback: "Well-articulated explanations. Be more concise in your time complexity analyses.",
-      },
-      {
-        id: 3,
-        title: "Programming Challenge",
-        status: "In Progress",
-        score: "17/30",
-        timeSpent: "2 hours 30 minutes",
-        feedback: "Good progress. Your graph algorithm needs optimization.",
-      },
-      {
-        id: 4,
-        title: "Final Project Submission",
-        status: "Not Started",
-        score: "0/30",
-        timeSpent: "0 minutes",
-        feedback: "",
-      },
-    ],
-    resources: [
-      { name: "Assessment Guidelines", type: "PDF" },
-      { name: "Lecture Notes - Advanced Trees", type: "PDF" },
-      { name: "Algorithm Complexity Cheat Sheet", type: "PDF" },
-      { name: "Sample Solutions for Practice Questions", type: "Code" },
-    ],
-    announcements: [
-      {
-        date: "May 8, 2025",
-        message: "Extended deadline for Final Project Submission section by 24 hours.",
-      },
-      {
-        date: "May 7, 2025",
-        message: "Additional resources for graph algorithms added to the resources section.",
-      },
-    ],
-    peerStats: {
-      averageCompletion: 65,
-      averageScore: 72,
-      topScore: 92,
-    },
+  const calculateDaysLeft = (dueDate: string): number => {
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
-  // Animation for confetti effect
-  const renderConfetti = (): React.ReactElement | null => {
-    if (!showConfetti) return null;
-
-    const confettiPieces = Array(50)
-      .fill(null)
-      .map((_, i) => {
-        const randomLeft = Math.floor(Math.random() * 100);
-        const randomDelay = Math.random() * 2;
-        const randomSize = Math.floor(Math.random() * 10) + 5;
-        const colors = ["bg-purple-500", "bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-pink-500"];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-
-        return (
-          <div
-            key={i}
-            className={`absolute ${randomColor} rounded-full animate-confetti`}
-            style={{
-              left: `${randomLeft}%`,
-              width: `${randomSize}px`,
-              height: `${randomSize}px`,
-              animationDelay: `${randomDelay}s`,
-            }}
-          />
-        );
-      });
-
-    return <div className='fixed inset-0 pointer-events-none overflow-hidden z-50'>{confettiPieces}</div>;
-  };
-
-  const getStatusIcon = (status: "Completed" | "In Progress" | "Not Started"): React.ReactElement => {
-    switch (status) {
-      case "Completed":
-        return <CheckCircle className='text-green-500' />;
-      case "In Progress":
-        return <Clock3 className='text-blue-500' />;
-      case "Not Started":
-        return <AlertTriangle className='text-yellow-500' />;
-      default:
-        return <FileText />;
-    }
-  };
-
-  const getStatusColor = (status: "Completed" | "In Progress" | "Not Started"): string => {
-    switch (status) {
-      case "Completed":
-        return "text-green-500 bg-green-100 dark:bg-green-900/30";
-      case "In Progress":
-        return "text-blue-500 bg-blue-100 dark:bg-blue-900/30";
-      case "Not Started":
-        return "text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30";
-      default:
-        return "text-gray-500 bg-gray-100 dark:bg-gray-800";
-    }
-  };
-
-  const filterSections = (sections: Section[]): Section[] => {
-    if (activeFilter === "all") return sections;
-    return sections.filter((section) => section.status.toLowerCase() === activeFilter.toLowerCase());
-  };
+  const filteredAssessments = assessments
+    .filter((assessment) => {
+      const matchesFilter = filter === "All" || assessment.status === filter;
+      const matchesSearch = assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) || assessment.subject.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesTab = activeTab === "all" || assessment.status.toLowerCase() === activeTab.toLowerCase();
+      return matchesFilter && matchesSearch && matchesTab;
+    })
+    .sort((a, b) => {
+      if (sortBy === "dueDate") {
+        return sortOrder === "asc" ? new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime() : new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+      }
+      if (sortBy === "title") {
+        return sortOrder === "asc" ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+      }
+      return sortOrder === "asc" ? a.subject.localeCompare(b.subject) : b.subject.localeCompare(a.subject);
+    });
 
   return (
-    <DashboardLayout userRole="student">
-    <div className={`min-h-screen transition duration-300 ${darkMode ? "dark bg-gray-900" : "bg-gray-50"}`}>
-      {/* Achievement notification */}
-    
-
-      {/* Top Navigation Bar */}
-      <nav className='bg-white dark:bg-gray-800 shadow-md'>
-        <div className='max-w-7xl mx-auto px-4 py-3 flex justify-between items-center'>
-          <div className='flex items-center space-x-2'>
-            <BookOpen className='h-6 w-6 text-purple-600 dark:text-purple-400' />
-            <span className='font-bold text-lg text-gray-800 dark:text-white'>eduPulse</span>
-          </div>
-
-          <div className='flex items-center space-x-6'>
-            <button className='bg-gray-200 dark:bg-gray-700 rounded-full w-12 h-6 flex items-center transition duration-300 focus:outline-none shadow' onClick={handleDarkModeToggle}>
-              <div className={`bg-white dark:bg-purple-500 w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ${darkMode ? "translate-x-6" : "translate-x-1"} flex items-center justify-center`}>{darkMode ? <span className='text-xs'>🌙</span> : <span className='text-xs'>☀️</span>}</div>
-            </button>
-
-            <div className='flex items-center space-x-2'>
-              <div className='bg-purple-600 text-white rounded-full h-8 w-8 flex items-center justify-center'>
-                <User className='h-4 w-4' />
+    <DashboardLayout userRole='student'>
+      <div className='min-h-screen -m-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300'>
+        <main className='  px-4 py-6 sm:px-6 lg:px-8'>
+          {/* Dashboard Header with Glassmorphism */}
+          <div className='mb-8 rounded-2xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-xl p-6 border border-white/20 dark:border-gray-700/30'>
+            <div className='flex flex-col md:flex-row justify-between items-start md:items-center'>
+              <div>
+                <h2 className='text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2'>Assessment Dashboard</h2>
+                <p className='text-gray-600 dark:text-gray-400'>Track, manage, and complete your assessments</p>
               </div>
-              <span className='text-sm font-medium hidden sm:block text-gray-800 dark:text-white'>Alex Johnson</span>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <div className='max-w-7xl mx-auto px-4 py-6'>
-        {/* Header */}
-        <div className='bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6'>
-          <div className='flex flex-col md:flex-row md:items-center md:justify-between'>
-            <div>
-              <div className='flex items-center space-x-2'>
-                <h1 className='text-2xl font-bold text-gray-800 dark:text-white'>{assessmentData.title}</h1>
-                <span className='text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2.5 py-1 rounded'>{assessmentData.code}</span>
-              </div>
-
-              <div className='mt-2 flex flex-wrap gap-3'>
-                <div className='flex items-center text-sm text-gray-600 dark:text-gray-300'>
-                  <Clock className='h-4 w-4 mr-1' />
-                  Due: {assessmentData.dueDate}
+              <div className='mt-4 md:mt-0 flex gap-4'>
+                <div className='relative w-full md:w-64'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <Search className='h-5 w-5 text-black' />
+                  </div>
+                  <input type='text' className='block w-full pl-10 pr-3 py-2 border border-gray-300/50 dark:border-gray-600/50 rounded-lg leading-5 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors duration-200' placeholder='Search assessments...' value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 </div>
-                <div className='flex items-center text-sm text-gray-600 dark:text-gray-300'>
-                  <User className='h-4 w-4 mr-1' />
-                  {assessmentData.instructor}
-                </div>
-                <div className='flex items-center text-sm text-gray-600 dark:text-gray-300'>
-                  <Award className='h-4 w-4 mr-1' />
-                  {assessmentData.weightage}
-                </div>
+                <button onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")} className='p-2 rounded-lg bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-300/50 dark:border-gray-600/50 hover:bg-blue-100/70 dark:hover:bg-blue-900/20 transition-colors duration-200'>
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </button>
               </div>
             </div>
+          </div>
 
-            <div className='mt-4 md:mt-0 flex flex-col items-center'>
+          {/* Stats Cards - Enhanced with gradients and animations */}
+          <div className='grid grid-cols-1 gap-6 md:grid-cols-3 mb-8'>
+            <div className='bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-xl shadow-lg border border-blue-100/50 dark:border-blue-900/20 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group'>
               <div className='flex items-center'>
-                <div className='relative h-16 w-16'>
-                  <svg className='h-full w-full' viewBox='0 0 36 36'>
-                    <circle cx='18' cy='18' r='16' fill='none' className='stroke-current text-gray-200 dark:text-gray-700' strokeWidth='2' />
-                    <circle cx='18' cy='18' r='16' fill='none' className='stroke-current text-purple-500' strokeWidth='2' strokeDasharray='100' strokeDashoffset={100 - progressValue} strokeLinecap='round' transform='rotate(-90 18 18)' />
-                  </svg>
-                  <div className='absolute top-0 left-0 h-full w-full flex items-center justify-center'>
-                    <span className='text-lg font-bold text-gray-800 dark:text-white'>{progressValue}%</span>
-                  </div>
+                <div className='rounded-full p-3 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300'>
+                  <Trophy className='h-6 w-6' />
                 </div>
-                <div className='ml-3'>
-                  <p className='text-sm font-medium text-gray-800 dark:text-white'>Completion</p>
-                  <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(assessmentData.status)}`}>{assessmentData.status}</div>
+                <div className='ml-5'>
+                  <h3 className='text-sm font-medium text-gray-500 dark:text-gray-400'>Completion Rate</h3>
+                  <div className='flex items-baseline'>
+                    <p className='text-2xl font-semibold text-gray-900 dark:text-white'>78%</p>
+                    <p className='ml-2 text-sm font-medium text-emerald-600 dark:text-emerald-400'>+12%</p>
+                  </div>
                 </div>
               </div>
-              <p className='mt-2 text-sm text-red-500 flex items-center'>
-                <Clock3 className='h-4 w-4 mr-1' />
-                {assessmentData.timeRemaining} remaining
-              </p>
+              <div className='mt-4 w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
+                <div className='h-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full' style={{ width: "78%" }}></div>
+              </div>
             </div>
-          </div>
 
-          {/* Description */}
-          <div className='mt-6'>
-            <p className='text-gray-600 dark:text-gray-300'>{assessmentData.description}</p>
-          </div>
-
-          {/* Action buttons */}
-          <div className='mt-6 flex flex-wrap gap-3'>
-            <button className='bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300'>
-              <Send className='h-4 w-4 mr-2' />
-              Submit Assessment
-            </button>
-            <button className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300'>
-              <BookOpen className='h-4 w-4 mr-2' />
-              Continue Working
-            </button>
-            <button className='bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300'>
-              <Download className='h-4 w-4 mr-2' />
-              Download Resources
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs Navigation */}
-        <div className='flex overflow-x-auto space-x-4 mb-6 pb-2'>
-          <button onClick={() => setSelectedTab("overview")} className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-300 ${selectedTab === "overview" ? "bg-purple-600 text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
-            Overview
-          </button>
-          <button onClick={() => setSelectedTab("sections")} className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-300 ${selectedTab === "sections" ? "bg-purple-600 text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
-            Sections
-          </button>
-          <button onClick={() => setSelectedTab("resources")} className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-300 ${selectedTab === "resources" ? "bg-purple-600 text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
-            Resources
-          </button>
-          <button onClick={() => setSelectedTab("analytics")} className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-300 ${selectedTab === "analytics" ? "bg-purple-600 text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
-            Analytics
-          </button>
-          <button onClick={() => setSelectedTab("announcements")} className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-300 flex items-center ${selectedTab === "announcements" ? "bg-purple-600 text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
-            Announcements
-            <span className='ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center'>{assessmentData.announcements.length}</span>
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div className='bg-white dark:bg-gray-800 rounded-xl shadow-md p-6'>
-          {/* Overview Tab */}
-          {selectedTab === "overview" && (
-            <div>
-              <h2 className='text-xl font-bold text-gray-800 dark:text-white mb-6'>Assessment Overview</h2>
-
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                {/* Progress & Stats Card */}
-                <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6'>
-                  <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4'>Your Progress</h3>
-
-                  <div className='space-y-4'>
-                    <div>
-                      <div className='flex justify-between mb-1'>
-                        <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>Completion</span>
-                        <span className='text-sm font-medium text-gray-800 dark:text-white'>{progressValue}%</span>
-                      </div>
-                      <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5'>
-                        <div className='bg-purple-600 h-2.5 rounded-full transition-all duration-1000 ease-out' style={{ width: `${progressValue}%` }}></div>
-                      </div>
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-4'>
-                      <div className='bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm'>
-                        <div className='flex items-center justify-between'>
-                          <span className='text-sm text-gray-600 dark:text-gray-400'>Sections Completed</span>
-                          <span className='text-lg font-bold text-gray-800 dark:text-white'>2/4</span>
-                        </div>
-                      </div>
-                      <div className='bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm'>
-                        <div className='flex items-center justify-between'>
-                          <span className='text-sm text-gray-600 dark:text-gray-400'>Current Score</span>
-                          <span className='text-lg font-bold text-green-500'>50/100</span>
-                        </div>
-                      </div>
-                      <div className='bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm'>
-                        <div className='flex items-center justify-between'>
-                          <span className='text-sm text-gray-600 dark:text-gray-400'>Time Spent</span>
-                          <span className='text-lg font-bold text-gray-800 dark:text-white'>4h 25m</span>
-                        </div>
-                      </div>
-                      <div className='bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm'>
-                        <div className='flex items-center justify-between'>
-                          <span className='text-sm text-gray-600 dark:text-gray-400'>Est. Time Left</span>
-                          <span className='text-lg font-bold text-orange-500'>3h 15m</span>
-                        </div>
-                      </div>
-                    </div>
+            <div className='bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-900/20 rounded-xl shadow-lg border border-purple-100/50 dark:border-purple-900/20 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group'>
+              <div className='flex items-center'>
+                <div className='rounded-full p-3 bg-gradient-to-br from-purple-500 to-pink-600 text-red-200 shadow-lg group-hover:scale-110 transition-transform duration-300'>
+                  <AlertCircle className='h-6 w-6' />
+                </div>
+                <div className='ml-5'>
+                  <h3 className='text-sm font-medium text-gray-500 dark:text-gray-400'>Upcoming Assessments</h3>
+                  <div className='flex items-baseline'>
+                    <p className='text-2xl font-semibold text-gray-900 dark:text-white'>3</p>
+                    <p className='ml-2 text-sm font-medium text-amber-600 dark:text-amber-400'>Next in 2 days</p>
                   </div>
                 </div>
-
-                {/* Class Comparison Card */}
-                <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6'>
-                  <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4'>Class Comparison</h3>
-
-                  <div className='space-y-6'>
-                    <div>
-                      <div className='flex justify-between mb-1'>
-                        <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>Class Average Completion</span>
-                        <span className='text-sm font-medium text-gray-800 dark:text-white'>{assessmentData.peerStats.averageCompletion}%</span>
-                      </div>
-                      <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5'>
-                        <div className='bg-blue-500 h-2.5 rounded-full' style={{ width: `${assessmentData.peerStats.averageCompletion}%` }}></div>
-                      </div>
-                      <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 mt-1 relative'>
-                        <div className='bg-purple-600 h-2.5 rounded-full' style={{ width: `${progressValue}%` }}></div>
-                        <div className='absolute -top-6 -ml-2.5 text-xs' style={{ left: `${progressValue}%` }}>
-                          <span className='px-2 py-1 bg-purple-600 text-white rounded-md'>You</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className='flex space-x-4 items-center'>
-                      <div className='flex-1 text-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm'>
-                        <p className='text-sm text-gray-600 dark:text-gray-400'>Class Average</p>
-                        <p className='text-xl font-bold text-blue-500'>{assessmentData.peerStats.averageScore}/100</p>
-                      </div>
-                      <div className='flex-1 text-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm'>
-                        <p className='text-sm text-gray-600 dark:text-gray-400'>Top Score</p>
-                        <p className='text-xl font-bold text-yellow-500'>{assessmentData.peerStats.topScore}/100</p>
-                      </div>
-                    </div>
-
-                    <div className='mt-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg'>
-                      <div className='flex items-start'>
-                        <Sparkles className='h-5 w-5 mr-2 text-blue-500 mt-0.5' />
-                        <div>
-                          <p className='text-sm font-medium text-blue-800 dark:text-blue-200'>Performance Insight</p>
-                          <p className='text-sm text-blue-600 dark:text-blue-300'>You're in the top 25% of the class! Your approach to algorithm complexity analysis is particularly strong.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+              <div className='mt-4'>
+                <div className='flex justify-between text-xs text-gray-500 dark:text-gray-400'>
+                  <span>Javascript Quiz</span>
+                  <span>May 12</span>
                 </div>
-
-                {/* Upcoming Deadlines */}
-                <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6'>
-                  <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4'>Upcoming Deadlines</h3>
-
-                  <div className='bg-white dark:bg-gray-800 rounded-lg p-4 border-l-4 border-red-500'>
-                    <div className='flex items-center justify-between'>
-                      <div>
-                        <h4 className='font-semibold text-gray-800 dark:text-white'>Final Project Submission</h4>
-                        <p className='text-sm text-gray-600 dark:text-gray-400'>Section 4 of this assessment</p>
-                      </div>
-                      <div className='text-right'>
-                        <p className='text-sm font-medium text-gray-800 dark:text-white'>May 15, 2025</p>
-                        <p className='text-xs text-red-500'>3 days, 4 hours remaining</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Feedback Summary */}
-                <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6'>
-                  <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center'>
-                    Feedback Summary
-                    <span className='ml-2 bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300'>New</span>
-                  </h3>
-
-                  <div className='space-y-3'>
-                    <div className='bg-white dark:bg-gray-800 rounded-lg p-4'>
-                      <div className='flex items-start'>
-                        <ThumbsUp className='h-5 w-5 text-green-500 mr-3 mt-1' />
-                        <div>
-                          <p className='text-sm text-gray-800 dark:text-white'>Good understanding of theoretical concepts. Review heap operations.</p>
-                          <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>Multiple Choice Questions</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className='bg-white dark:bg-gray-800 rounded-lg p-4'>
-                      <div className='flex items-start'>
-                        <ThumbsUp className='h-5 w-5 text-green-500 mr-3 mt-1' />
-                        <div>
-                          <p className='text-sm text-gray-800 dark:text-white'>Well-articulated explanations. Be more concise in your time complexity analyses.</p>
-                          <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>Short Answer Questions</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className='bg-white dark:bg-gray-800 rounded-lg p-4'>
-                      <div className='flex items-start'>
-                        <AlertTriangle className='h-5 w-5 text-yellow-500 mr-3 mt-1' />
-                        <div>
-                          <p className='text-sm text-gray-800 dark:text-white'>Your graph algorithm needs optimization. Consider using adjacency lists instead of matrices.</p>
-                          <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>Programming Challenge</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className='mt-1 w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full'>
+                  <div className='h-1.5 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full' style={{ width: "70%" }}></div>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Sections Tab */}
-          {selectedTab === "sections" && (
-            <div>
-              <div className='flex justify-between items-center mb-6'>
-                <h2 className='text-xl font-bold text-gray-800 dark:text-white'>Assessment Sections</h2>
-
-                {/* Filter buttons */}
-                <div className='flex space-x-2'>
-                  <button onClick={() => setActiveFilter("all")} className={`px-3 py-1 text-xs font-medium rounded-md ${activeFilter === "all" ? "bg-purple-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}`}>
-                    All
-                  </button>
-                  <button onClick={() => setActiveFilter("completed")} className={`px-3 py-1 text-xs font-medium rounded-md ${activeFilter === "completed" ? "bg-green-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}`}>
-                    Completed
-                  </button>
-                  <button onClick={() => setActiveFilter("in progress")} className={`px-3 py-1 text-xs font-medium rounded-md ${activeFilter === "in progress" ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}`}>
-                    In Progress
-                  </button>
-                  <button onClick={() => setActiveFilter("not started")} className={`px-3 py-1 text-xs font-medium rounded-md ${activeFilter === "not started" ? "bg-yellow-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}`}>
-                    Not Started
-                  </button>
+            <div className='bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 rounded-xl shadow-lg border border-green-100/50 dark:border-green-900/20 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group'>
+              <div className='flex items-center'>
+                <div className='rounded-full p-3 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300'>
+                  <Award className='h-6 w-6' />
+                </div>
+                <div className='ml-5'>
+                  <h3 className='text-sm font-medium text-gray-500 dark:text-gray-400'>Average Score</h3>
+                  <div className='flex items-baseline'>
+                    <p className='text-2xl font-semibold text-gray-900 dark:text-white'>87%</p>
+                    <p className='ml-2 text-sm font-medium text-emerald-600 dark:text-emerald-400'>+5%</p>
+                  </div>
                 </div>
               </div>
+              <div className='mt-4 w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
+                <div className='h-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full' style={{ width: "87%" }}></div>
+              </div>
+            </div>
+          </div>
 
-              {/* Sections list */}
-              <div className='space-y-4'>
-                {filterSections(assessmentData.sections).map((section: Section) => (
-                  <div key={section.id} className='bg-white dark:bg-gray-700 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300'>
-                    <div className='p-5'>
+          {/* Charts Section with better styling */}
+          <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8'>
+            {/* Progress Chart */}
+            <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100/50 dark:border-gray-700/30 p-6 lg:col-span-2 transition-all duration-300 hover:shadow-xl'>
+              <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
+                <BarChartIcon className='h-5 w-5 mr-2 text-blue-500' />
+                Monthly Progress
+              </h3>
+              <div className='h-64'>
+                <ResponsiveContainer width='100%' height='100%'>
+                  <BarChart data={monthlyProgress} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id='colorTotal' x1='0' y1='0' x2='0' y2='1'>
+                        <stop offset='5%' stopColor='#94A3B8' stopOpacity={0.8} />
+                        <stop offset='95%' stopColor='#94A3B8' stopOpacity={0.2} />
+                      </linearGradient>
+                      <linearGradient id='colorCompleted' x1='0' y1='0' x2='0' y2='1'>
+                        <stop offset='5%' stopColor='#3B82F6' stopOpacity={0.8} />
+                        <stop offset='95%' stopColor='#3B82F6' stopOpacity={0.2} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray='3 3' stroke={darkMode ? "#374151" : "#e5e7eb"} />
+                    <XAxis dataKey='name' stroke={darkMode ? "#9CA3AF" : "#6B7280"} />
+                    <YAxis stroke={darkMode ? "#9CA3AF" : "#6B7280"} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: darkMode ? "#1F2937" : "#FFFFFF",
+                        borderColor: darkMode ? "#374151" : "#E5E7EB",
+                        color: darkMode ? "#F9FAFB" : "#111827",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey='total' name='Total Assessments' fill='url(#colorTotal)' radius={[8, 8, 0, 0]} />
+                    <Bar dataKey='completed' name='Completed' fill='url(#colorCompleted)' radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Status Distribution - Enhanced */}
+            <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100/50 dark:border-gray-700/30 p-6 transition-all duration-300 hover:shadow-xl'>
+              <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
+                <PieChart className='h-5 w-5 mr-2 text-purple-500' />
+                Assessment Status
+              </h3>
+              <div className='h-64'>
+                <ResponsiveContainer width='100%' height='100%'>
+                  <PieChart>
+                    <defs>
+                      {completionStats.map((entry, index) => (
+                        <linearGradient key={`gradient-${index}`} id={`color${index}`} x1='0' y1='0' x2='0' y2='1'>
+                          <stop offset='0%' stopColor={entry.color} stopOpacity={0.9} />
+                          <stop offset='100%' stopColor={entry.color} stopOpacity={0.6} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <Pie data={completionStats} cx='50%' cy='50%' labelLine={false} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} outerRadius={80} innerRadius={30} dataKey='value' strokeWidth={3} stroke='#ffffff'>
+                      {completionStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={`url(#color${index})`} style={{ filter: "drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15))" }} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: darkMode ? "#1F2937" : "#FFFFFF",
+                        borderColor: darkMode ? "#374151" : "#E5E7EB",
+                        color: darkMode ? "#F9FAFB" : "#111827",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs for filtering */}
+          <div className='mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden'>
+            <div className='flex overflow-x-auto scrollbar-hide'>
+              <button onClick={() => setActiveTab("all")} className={`py-3 px-6 font-medium text-sm transition-all duration-200 flex-shrink-0 border-b-2 focus:outline-none ${activeTab === "all" ? "border-blue-500 text-blue-600 dark:text-blue-400" : "border-transparent text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"}`}>
+                All Assessments
+              </button>
+              <button onClick={() => setActiveTab("upcoming")} className={`py-3 px-6 font-medium text-sm transition-all duration-200 flex-shrink-0 border-b-2 focus:outline-none ${activeTab === "upcoming" ? "border-blue-500 text-blue-600 dark:text-blue-400" : "border-transparent text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"}`}>
+                Upcoming
+              </button>
+              <button onClick={() => setActiveTab("completed")} className={`py-3 px-6 font-medium text-sm transition-all duration-200 flex-shrink-0 border-b-2 focus:outline-none ${activeTab === "completed" ? "border-emerald-500 text-emerald-600 dark:text-emerald-400" : "border-transparent text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400"}`}>
+                Completed
+              </button>
+              <button onClick={() => setActiveTab("missed")} className={`py-3 px-6 font-medium text-sm transition-all duration-200 flex-shrink-0 border-b-2 focus:outline-none ${activeTab === "missed" ? "border-rose-500 text-rose-600 dark:text-rose-400" : "border-transparent text-gray-600 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400"}`}>
+                Missed
+              </button>
+            </div>
+          </div>
+
+          {/* Enhanced Filter Buttons */}
+          <div className='mb-6 flex items-center gap-4 flex-wrap'>
+            <div className='relative'>
+              <button onClick={() => setShowFilters(!showFilters)} className='flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300/50 dark:border-gray-600/50 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200'>
+                <Filter className='mr-2 h-4 w-4 text-blue-500' />
+                Filter: {filter}
+                <ChevronDown className='ml-2 h-4 w-4' />
+              </button>
+
+              {showFilters && (
+                <div className='absolute z-10 mt-1 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg py-1 text-base ring-1 ring-black/5 focus:outline-none sm:text-sm transition-all backdrop-blur-lg'>
+                  {["All", "Upcoming", "Completed", "Missed"].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => {
+                        setFilter(status);
+                        setShowFilters(false);
+                      }}
+                      className={`${filter === status ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"} block px-4 py-2 w-full text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className='flex gap-2 overflow-x-auto pb-1'>
+              <button onClick={() => setSortBy("dueDate")} className={`px-3 py-1 rounded-lg text-sm transition-all duration-200 ${sortBy === "dueDate" ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300/50 dark:border-gray-600/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"}`}>
+                Due Date
+              </button>
+              <button onClick={() => setSortBy("title")} className={`px-3 py-1 rounded-lg text-sm transition-all duration-200 ${sortBy === "title" ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300/50 dark:border-gray-600/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"}`}>
+                Title
+              </button>
+              <button onClick={() => setSortBy("subject")} className={`px-3 py-1 rounded-lg text-sm transition-all duration-200 ${sortBy === "subject" ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300/50 dark:border-gray-600/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"}`}>
+                Subject
+              </button>
+            </div>
+          </div>
+
+          {/* Assessment Cards - With enhanced visuals */}
+          {isLoading ? (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className='bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 animate-pulse'>
+                  <div className='flex items-center mb-4'>
+                    <div className='w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg'></div>
+                    <div className='ml-4 flex-1'>
+                      <div className='h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2'></div>
+                      <div className='h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2'></div>
+                    </div>
+                  </div>
+                  <div className='h-3 bg-gray-200 dark:bg-gray-700 rounded mb-4'></div>
+                  <div className='h-10 bg-gray-200 dark:bg-gray-700 rounded mb-4'></div>
+                  <div className='flex justify-between'>
+                    <div className='h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4'></div>
+                    <div className='h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4'></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredAssessments.length > 0 ? (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {filteredAssessments.map((assessment) => (
+                <div key={assessment.id} className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border-l-4 ${STATUS_BORDER_COLORS[assessment.status]} transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group`}>
+                  <div className='relative'>
+                    <div className='absolute top-0 right-0 m-4'>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_TEXT_COLORS[assessment.status]} bg-opacity-10`}>
+                        {assessment.status === "Upcoming" && <Clock className='mr-1 h-3 w-3' />}
+                        {assessment.status === "Completed" && <CheckCircle className='mr-1 h-3 w-3' />}
+                        {assessment.status === "Missed" && <AlertCircle className='mr-1 h-3 w-3' />}
+                        {assessment.status}
+                      </span>
+                    </div>
+
+                    {/* {assessment.difficulty && (
+                      <div className='absolute top-0 left-0 m-4'>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${DIFFICULTY_COLORS[assessment.difficulty]}`}>{assessment.difficulty}</span>
+                      </div>
+                    )} */}
+                  </div>
+
+                  <div className='p-6'>
+                    <div className='flex items-center mb-4'>
+                      <div className='rounded-lg p-2' style={{ backgroundColor: `${assessment.color}20` }}>
+                        {/* @ts-ignore */}
+                        {React.cloneElement(assessment.icon, { color: assessment.color })}
+                      </div>
+                      <div className='ml-4'>
+                        <h3 className='text-lg font-medium text-gray-900 dark:text-white line-clamp-1'>{assessment.title}</h3>
+                        <p className='text-sm text-gray-500 dark:text-gray-400'>{assessment.subject}</p>
+                      </div>
+                    </div>
+
+                    <div className='space-y-3 mb-4'>
                       <div className='flex justify-between items-center'>
-                        <div className='flex items-center'>
-                          {getStatusIcon(section.status)}
-                          <h3 className='ml-3 text-lg font-medium text-gray-800 dark:text-white'>{section.title}</h3>
-                        </div>
-                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(section.status)}`}>{section.status}</div>
+                        <span className='text-sm text-gray-500 dark:text-gray-400 flex items-center'>
+                          <Calendar className='h-4 w-4 mr-1' />
+                          {formatDate(assessment.dueDate)}
+                        </span>
+                        {assessment.status === "Upcoming" && <span className='text-sm font-medium text-blue-600 dark:text-blue-400'>{calculateDaysLeft(assessment.dueDate)} days left</span>}
                       </div>
 
-                      <div className='mt-4 grid grid-cols-1 md:grid-cols-3 gap-4'>
-                        <div className='flex items-center'>
-                          <div className='h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center'>
-                            <Award className='h-5 w-5 text-blue-500' />
+                      {assessment.timeLimit && (
+                        <div className='flex items-center text-sm text-gray-500 dark:text-gray-400'>
+                          <Clock className='h-4 w-4 mr-1' />
+                          Time limit: {assessment.timeLimit} minutes
+                        </div>
+                      )}
+
+                      {assessment.questions && (
+                        <div className='flex items-center text-sm text-gray-500 dark:text-gray-400'>
+                          <Target className='h-4 w-4 mr-1' />
+                          {assessment.questions} questions
+                        </div>
+                      )}
+
+                      {assessment.score && (
+                        <div className='mt-2'>
+                          <div className='flex items-center justify-between mb-1'>
+                            <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>Score: {assessment.score}%</span>
                           </div>
-                          <div className='ml-3'>
-                            <p className='text-xs text-gray-500 dark:text-gray-400'>Score</p>
-                            <p className='text-sm font-medium text-gray-800 dark:text-white'>{section.score}</p>
+                          <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2'>
+                            <div
+                              className='h-2 rounded-full'
+                              style={{
+                                width: `${assessment.score}%`,
+                                backgroundColor: assessment.color,
+                                backgroundImage: `linear-gradient(90deg, ${assessment.color}, ${assessment.color}cc)`,
+                              }}
+                            ></div>
                           </div>
                         </div>
+                      )}
 
-                        <div className='flex items-center'>
-                          <div className='h-9 w-9 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center'>
-                            <Clock className='h-5 w-5 text-purple-500' />
+                      {assessment.status === "Upcoming" && (
+                        <div className='mt-2'>
+                          <div className='flex items-center justify-between mb-1'>
+                            <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>Progress: {assessment.completion}%</span>
                           </div>
-                          <div className='ml-3'>
-                            <p className='text-xs text-gray-500 dark:text-gray-400'>Time Spent</p>
-                            <p className='text-sm font-medium text-gray-800 dark:text-white'>{section.timeSpent}</p>
+                          <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2'>
+                            <div
+                              className='h-2 rounded-full'
+                              style={{
+                                width: `${assessment.completion}%`,
+                                backgroundColor: assessment.color,
+                                backgroundImage: `linear-gradient(90deg, ${assessment.color}, ${assessment.color}cc)`,
+                              }}
+                            ></div>
                           </div>
                         </div>
-
-                        {section.feedback && (
-                          <div className='flex items-center'>
-                            <div className='h-9 w-9 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center'>
-                              <FileText className='h-5 w-5 text-green-500' />
-                            </div>
-                            <div className='ml-3'>
-                              <p className='text-xs text-gray-500 dark:text-gray-400'>Feedback</p>
-                              <p className='text-sm font-medium text-gray-800 dark:text-white truncate max-w-xs'>
-                                {section.feedback.slice(0, 30)}
-                                {section.feedback.length > 30 ? "..." : ""}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className='mt-4 flex justify-end space-x-3'>
-                        {section.status !== "Completed" && <button className='bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-sm rounded-lg transition-colors duration-300'>{section.status === "Not Started" ? "Start Section" : "Continue Working"}</button>}
-                        {section.status === "Completed" && <button className='bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm rounded-lg transition-colors duration-300'>View Feedback</button>}
-                        <button className='bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 text-sm rounded-lg transition-colors duration-300'>View Details</button>
-                      </div>
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Resources Tab */}
-          {selectedTab === "resources" && (
-            <div>
-              <h2 className='text-xl font-bold text-gray-800 dark:text-white mb-6'>Assessment Resources</h2>
-
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                {/* Resources list */}
-                <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6'>
-                  <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4'>Available Resources</h3>
-
-                  <div className='space-y-3'>
-                    {assessmentData.resources.map((resource, index) => (
-                      <div key={index} className='bg-white dark:bg-gray-800 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow duration-300'>
-                        <div className='flex items-center'>
-                          {resource.type === "PDF" ? (
-                            <div className='h-10 w-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center'>
-                              <FileText className='h-5 w-5 text-red-500' />
-                            </div>
-                          ) : (
-                            <div className='h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center'>
-                              <Code2 className='h-5 w-5 text-blue-500' />
-                            </div>
-                          )}
-                          <div className='ml-3'>
-                            <p className='text-sm font-medium text-gray-800 dark:text-white'>{resource.name}</p>
-                            <p className='text-xs text-gray-500 dark:text-gray-400'>{resource.type}</p>
-                          </div>
-                        </div>
-                        <button className='text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300'>
-                          <Download className='h-5 w-5' />
+                    <div className='flex justify-between items-center pt-2'>
+                      <span className='text-sm font-medium px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300'>{assessment.type}</span>
+                      {assessment.status === "Upcoming" && (
+                        <button className='group-hover:bg-blue-600 bg-blue-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center transition-all duration-200 hover:shadow-lg'>
+                          Start
+                          <ArrowRight className='ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
                         </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Recommended Resources */}
-                  <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6'>
-                    <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4'>Recommended Resources</h3>
-
-                    <div className='space-y-3'>
-                      <div className='bg-white dark:bg-gray-800 rounded-lg p-4 flex items-center hover:shadow-md transition-shadow duration-300'>
-                        <div className='h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center'>
-                          <Book className='h-5 w-5 text-purple-500' />
-                        </div>
-                        <div className='ml-3 flex-grow'>
-                          <div className='flex items-center justify-between'>
-                            <p className='text-sm font-medium text-gray-800 dark:text-white'>Advanced Graph Algorithms Tutorial</p>
-                            <div className='flex'>
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star key={star} className='h-4 w-4 text-yellow-400' fill={star <= 4 ? "currentColor" : "none"} />
-                              ))}
-                            </div>
-                          </div>
-                          <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>Based on your progress in Programming Challenge</p>
-                        </div>
-                      </div>
-
-                      <div className='bg-white dark:bg-gray-800 rounded-lg p-4 flex items-center hover:shadow-md transition-shadow duration-300'>
-                        <div className='h-10 w-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center'>
-                          <Book className='h-5 w-5 text-green-500' />
-                        </div>
-                        <div className='ml-3 flex-grow'>
-                          <div className='flex items-center justify-between'>
-                            <p className='text-sm font-medium text-gray-800 dark:text-white'>Heap Operations Quick Reference</p>
-                            <div className='flex'>
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star key={star} className='h-4 w-4 text-yellow-400' fill={star <= 5 ? "currentColor" : "none"} />
-                              ))}
-                            </div>
-                          </div>
-                          <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>Recommended based on your quiz performance</p>
-                        </div>
-                      </div>
-
-                      <div className='bg-white dark:bg-gray-800 rounded-lg p-4 flex items-center hover:shadow-md transition-shadow duration-300'>
-                        <div className='h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center'>
-                          <Book className='h-5 w-5 text-blue-500' />
-                        </div>
-                        <div className='ml-3 flex-grow'>
-                          <div className='flex items-center justify-between'>
-                            <p className='text-sm font-medium text-gray-800 dark:text-white'>Time Complexity Analysis Framework</p>
-                            <div className='flex'>
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star key={star} className='h-4 w-4 text-yellow-400' fill={star <= 4 ? "currentColor" : "none"} />
-                              ))}
-                            </div>
-                          </div>
-                          <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>From the class library</p>
-                        </div>
-                      </div>
+                      )}
+                      {assessment.status === "Completed" && (
+                        <button className='bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center transition-all duration-200 hover:shadow-lg hover:bg-emerald-600'>
+                          Review
+                          <ArrowRight className='ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
+                        </button>
+                      )}
+                      {assessment.status === "Missed" && (
+                        <button className='bg-gray-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center transition-all duration-200 hover:shadow-lg hover:bg-gray-600'>
+                          View
+                          <ArrowRight className='ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg p-10 text-center'>
+              <div className='flex flex-col items-center'>
+                <Search className='h-12 w-12 text-gray-400 mb-4' />
+                <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>No assessments found</h3>
+                <p className='text-gray-500 dark:text-gray-400 max-w-md mb-6'>We couldn't find any assessments matching your search criteria. Try adjusting your filters or search term.</p>
+                <button
+                  onClick={() => {
+                    setFilter("All");
+                    setSearchTerm("");
+                    setActiveTab("all");
+                  }}
+                  className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200'
+                >
+                  Clear filters
+                </button>
               </div>
             </div>
           )}
-
-          {/* Analytics Tab */}
-          {selectedTab === "analytics" && (
-            <div>
-              <h2 className='text-xl font-bold text-gray-800 dark:text-white mb-6'>Performance Analytics</h2>
-
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                {/* Time Spent Analytics */}
-                <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6'>
-                  <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4'>Time Distribution</h3>
-
-                  <div className='aspect-w-16 aspect-h-9 bg-white dark:bg-gray-800 rounded-lg p-4'>
-                    <div className='flex items-center justify-center h-full'>
-                      <PieChart className='h-40 w-40 text-gray-300 dark:text-gray-600' />
-                      <div className='absolute inset-0 flex items-center justify-center'>
-                        <div className='text-center'>
-                          <p className='text-xs text-gray-500 dark:text-gray-400'>Total Time Spent</p>
-                          <p className='text-2xl font-bold text-gray-800 dark:text-white'>4h 25m</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='mt-4 space-y-3'>
-                    <div className='flex items-center'>
-                      <div className='h-4 w-4 bg-purple-500 rounded-sm mr-2'></div>
-                      <span className='text-sm text-gray-600 dark:text-gray-300'>Multiple Choice Questions (45m)</span>
-                    </div>
-                    <div className='flex items-center'>
-                      <div className='h-4 w-4 bg-blue-500 rounded-sm mr-2'></div>
-                      <span className='text-sm text-gray-600 dark:text-gray-300'>Short Answer Questions (1h 10m)</span>
-                    </div>
-                    <div className='flex items-center'>
-                      <div className='h-4 w-4 bg-green-500 rounded-sm mr-2'></div>
-                      <span className='text-sm text-gray-600 dark:text-gray-300'>Programming Challenge (2h 30m)</span>
-                    </div>
-                    <div className='flex items-center'>
-                      <div className='h-4 w-4 bg-gray-300 dark:bg-gray-500 rounded-sm mr-2'></div>
-                      <span className='text-sm text-gray-600 dark:text-gray-300'>Final Project (0m)</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Score Analytics */}
-                <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6'>
-                  <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4'>Score Distribution</h3>
-
-                  <div className='aspect-w-16 aspect-h-9 bg-white dark:bg-gray-800 rounded-lg p-4'>
-                    <div className='h-full flex items-end justify-around'>
-                      <div className='flex flex-col items-center'>
-                        <div className='bg-purple-500 w-12 h-16 rounded-t-lg'></div>
-                        <p className='text-xs font-medium text-gray-600 dark:text-gray-400 mt-2'>MCQ</p>
-                        <p className='text-xs font-bold text-gray-800 dark:text-white'>90%</p>
-                      </div>
-                      <div className='flex flex-col items-center'>
-                        <div className='bg-blue-500 w-12 h-12 rounded-t-lg'></div>
-                        <p className='text-xs font-medium text-gray-600 dark:text-gray-400 mt-2'>SAQ</p>
-                        <p className='text-xs font-bold text-gray-800 dark:text-white'>75%</p>
-                      </div>
-                      <div className='flex flex-col items-center'>
-                        <div className='bg-green-500 w-12 h-9 rounded-t-lg'></div>
-                        <p className='text-xs font-medium text-gray-600 dark:text-gray-400 mt-2'>Prog</p>
-                        <p className='text-xs font-bold text-gray-800 dark:text-white'>57%</p>
-                      </div>
-                      <div className='flex flex-col items-center'>
-                        <div className='bg-gray-300 dark:bg-gray-500 w-12 h-0 rounded-t-lg'></div>
-                        <p className='text-xs font-medium text-gray-600 dark:text-gray-400 mt-2'>Final</p>
-                        <p className='text-xs font-bold text-gray-800 dark:text-white'>0%</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='mt-4 bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg'>
-                    <div className='flex items-start'>
-                      <BarChart3 className='h-5 w-5 text-blue-500 mr-2 mt-0.5' />
-                      <div>
-                        <p className='text-sm font-medium text-blue-800 dark:text-blue-200'>Score Analysis</p>
-                        <p className='text-sm text-blue-600 dark:text-blue-300'>You excel in theoretical questions but need improvement in practical implementation. Focus on optimizing your code in the programming challenge.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Skills Assessment */}
-                <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-6 col-span-1 md:col-span-2'>
-                  <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-4'>Skills Assessment</h3>
-
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                    <div className='space-y-4'>
-                      <div>
-                        <div className='flex justify-between mb-1'>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>Algorithm Analysis</span>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>85%</span>
-                        </div>
-                        <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5'>
-                          <div className='bg-green-500 h-2.5 rounded-full' style={{ width: "85%" }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className='flex justify-between mb-1'>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>Data Structures</span>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>80%</span>
-                        </div>
-                        <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5'>
-                          <div className='bg-green-500 h-2.5 rounded-full' style={{ width: "80%" }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className='flex justify-between mb-1'>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>Problem Solving</span>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>78%</span>
-                        </div>
-                        <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5'>
-                          <div className='bg-green-500 h-2.5 rounded-full' style={{ width: "78%" }}></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className='space-y-4'>
-                      <div>
-                        <div className='flex justify-between mb-1'>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>Code Optimization</span>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>62%</span>
-                        </div>
-                        <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5'>
-                          <div className='bg-yellow-500 h-2.5 rounded-full' style={{ width: "62%" }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className='flex justify-between mb-1'>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>Graph Algorithms</span>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>55%</span>
-                        </div>
-                        <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5'>
-                          <div className='bg-yellow-500 h-2.5 rounded-full' style={{ width: "55%" }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className='flex justify-between mb-1'>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>Heap Operations</span>
-                          <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>65%</span>
-                        </div>
-                        <div className='w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5'>
-                          <div className='bg-yellow-500 h-2.5 rounded-full' style={{ width: "65%" }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Announcements Tab */}
-          {selectedTab === "announcements" && (
-            <div>
-              <h2 className='text-xl font-bold text-gray-800 dark:text-white mb-6'>Announcements</h2>
-
-              <div className='space-y-4'>
-                {assessmentData.announcements.map((announcement, index) => (
-                  <div key={index} className='bg-white dark:bg-gray-700 rounded-lg p-5 shadow-sm'>
-                    <div className='flex items-center justify-between'>
-                      <div className='flex items-center'>
-                        <div className='h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center'>
-                          <User className='h-5 w-5 text-purple-600' />
-                        </div>
-                        <div className='ml-3'>
-                          <p className='text-sm font-medium text-gray-800 dark:text-white'>{assessmentData.instructor}</p>
-                          <p className='text-xs text-gray-500 dark:text-gray-400'>{announcement.date}</p>
-                        </div>
-                      </div>
-                      {index === 0 && <span className='bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300'>New</span>}
-                    </div>
-
-                    <div className='mt-4'>
-                      <p className='text-gray-700 dark:text-gray-300'>{announcement.message}</p>
-                    </div>
-
-                    <div className='mt-4 flex justify-end'>
-                      <button className='text-purple-600 hover:text-purple-800 dark:text-purple-400 text-sm font-medium'>Acknowledge</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <footer className='bg-white dark:bg-gray-800 shadow-md mt-8'>
-            <div className='max-w-7xl mx-auto px-4 py-6'>
-              <div className='flex flex-col md:flex-row justify-between items-center'>
-                <div className='flex items-center mb-4 md:mb-0'>
-                  <BookOpen className='h-6 w-6 text-purple-600 dark:text-purple-400 mr-2' />
-                  <span className='font-bold text-gray-800 dark:text-white'>eduPulse</span>
-                  <span className='text-gray-500 dark:text-gray-400 text-sm ml-2'>© 2025 All rights reserved</span>
-                </div>
-
-                <div className='flex space-x-6'>
-                  <a href='#' className='text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 text-sm'>
-                    Help Center
-                  </a>
-                  <a href='#' className='text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 text-sm'>
-                    Privacy Policy
-                  </a>
-                  <a href='#' className='text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 text-sm'>
-                    Terms of Service
-                  </a>
-                  <a href='#' className='text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 text-sm'>
-                    Contact
-                  </a>
-                </div>
-              </div>
-            </div>
-          </footer>
-        </div>
+        </main>
       </div>
-    </div>
     </DashboardLayout>
   );
 }
