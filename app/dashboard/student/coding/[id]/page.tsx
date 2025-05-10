@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Play, Send, Info, Book, MessageCircle, CheckCircle, Code, Settings, ChevronDown, Moon, Sun, Save, Share, Trophy, Clock, Bookmark, BookmarkCheck, Heart, RefreshCw, AlertCircle } from "lucide-react";
+import { Play, Send, Info, Book, MessageCircle, CheckCircle, Code, Settings, ChevronDown, Moon, Sun, Save, Share, Trophy, Clock, Bookmark, BookmarkCheck, Heart, RefreshCw, AlertCircle, Plus, Trash2, XCircle, Database, Copy } from "lucide-react";
 import CodeEditor from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import DashboardLayout from "@/components/dashboard-layout";
@@ -11,9 +11,20 @@ import { useTheme } from "next-themes";
 interface TestCase {
   id: number;
   name: string;
-  status: "passed" | "failed";
+  status: "passed" | "failed" | "running" | "pending";
   expected?: string;
   actual?: string;
+  input?: string;
+  output?: string;
+  executionTime?: number;
+  memoryUsage?: number;
+}
+
+interface UserTestCase {
+  id: string;
+  input: string;
+  expected: string;
+  description?: string;
 }
 
 interface TestResults {
@@ -51,6 +62,24 @@ interface Problem {
 
 interface Problems {
   [key: string]: Problem;
+}
+
+interface Submission {
+  id: string;
+  timestamp: string;
+  language: string;
+  status: "accepted" | "wrong_answer" | "time_limit_exceeded" | "runtime_error";
+  executionTime: number;
+  memoryUsage: number;
+  code: string;
+  testCasesPassed: number;
+  totalTestCases: number;
+}
+
+interface SubmissionStatus {
+  show: boolean;
+  status: "success" | "error" | null;
+  message: string;
 }
 
 // Sample problems data - in a real app this would come from an API
@@ -199,6 +228,11 @@ const discussionsData = [
   },
 ];
 
+interface ExecutionStats {
+  time: number;
+  memory: number;
+}
+
 export default function CodingPractice() {
   const router = useRouter();
   const params = useParams();
@@ -206,7 +240,7 @@ export default function CodingPractice() {
 
   const [problem, setProblem] = useState<Problem | null>(null);
   const [code, setCode] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"problem" | "hints">("problem");
+  const [activeTab, setActiveTab] = useState<"problem" | "hints" | "testcases" | "submissions">("problem");
   const { theme } = useTheme();
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [language, setLanguage] = useState<string>("javascript");
@@ -217,8 +251,60 @@ export default function CodingPractice() {
   const [editorMounted, setEditorMounted] = useState<boolean>(false);
   const [discussions, setDiscussions] = useState(discussionsData);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState<boolean>(false);
-  const [editor, setEditor] = useState<any>(null);
+  const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [userTestCases, setUserTestCases] = useState<UserTestCase[]>([]);
+  const [newTestCase, setNewTestCase] = useState<UserTestCase>({
+    id: "",
+    input: "",
+    expected: "",
+    description: "",
+  });
+  const [showAddTestCase, setShowAddTestCase] = useState<boolean>(false);
+  const [executionStats, setExecutionStats] = useState<ExecutionStats>({
+    time: 0,
+    memory: 0,
+  });
+  const [submissions, setSubmissions] = useState<Submission[]>([
+    {
+      id: "1",
+      timestamp: "2024-03-20T10:30:00",
+      language: "javascript",
+      status: "accepted",
+      executionTime: 45,
+      memoryUsage: 2.1,
+      code: "function twoSum(nums, target) { ... }",
+      testCasesPassed: 4,
+      totalTestCases: 4
+    },
+    {
+      id: "2",
+      timestamp: "2024-03-20T10:15:00",
+      language: "python",
+      status: "wrong_answer",
+      executionTime: 38,
+      memoryUsage: 2.0,
+      code: "def twoSum(nums, target): ...",
+      testCasesPassed: 2,
+      totalTestCases: 4
+    },
+    {
+      id: "3",
+      timestamp: "2024-03-20T10:00:00",
+      language: "java",
+      status: "time_limit_exceeded",
+      executionTime: 2000,
+      memoryUsage: 2.5,
+      code: "public int[] twoSum(int[] nums, int target) { ... }",
+      testCasesPassed: 1,
+      totalTestCases: 4
+    }
+  ]);
+  const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>({
+    show: false,
+    status: null,
+    message: ""
+  });
 
   // Function to load problem data
   useEffect(() => {
@@ -240,7 +326,7 @@ export default function CodingPractice() {
     }
   };
 
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
     setEditor(editor);
     setEditorMounted(true);
   };
@@ -268,12 +354,17 @@ export default function CodingPractice() {
             { id: 4, name: "Test Case 4", status: "failed", expected: "[1,2]", actual: "[0,1]" },
           ],
         });
+        setExecutionStats({
+          time: 150,
+          memory: 2.5,
+        });
       }, 2000);
     } catch (err) {
       setError("Failed to run tests");
       console.error("Error running tests:", err);
       setIsRunning(false);
     }
+    setActiveTab("testcases");
   };
 
   const submitSolution = () => {
@@ -289,14 +380,26 @@ export default function CodingPractice() {
       // Simulate submission
       setTimeout(() => {
         setIsSubmitting(false);
+        const isSuccess = Math.random() > 0.3; // 70% success rate for demo
+        setSubmissionStatus({
+          show: true,
+          status: isSuccess ? 'success' : 'error',
+          message: isSuccess ? 'Solution accepted!' : 'Some test cases failed'
+        });
+        
+        // Hide the status after 3 seconds
+        setTimeout(() => {
+          setSubmissionStatus(prev => ({ ...prev, show: false }));
+        }, 3000);
+
         setTestResults({
-          passed: 9,
-          failed: 1,
+          passed: isSuccess ? 9 : 3,
+          failed: isSuccess ? 1 : 7,
           details: [
             { id: 1, name: "Test Case 1", status: "passed" },
             { id: 2, name: "Test Case 2", status: "passed" },
             { id: 3, name: "Test Case 3", status: "passed" },
-            { id: 4, name: "Test Case 4", status: "failed" },
+            { id: 4, name: "Test Case 4", status: isSuccess ? "passed" : "failed" },
           ],
         });
       }, 2000);
@@ -305,6 +408,7 @@ export default function CodingPractice() {
       console.error("Error submitting solution:", err);
       setIsSubmitting(false);
     }
+    setActiveTab("testcases");
   };
 
   const toggleBookmark = () => {
@@ -316,6 +420,61 @@ export default function CodingPractice() {
   const progressPercentage = totalTestCases > 0 ? ((testResults?.passed || 0) / totalTestCases) * 100 : 0;
 
   const containerClass = darkMode ? "dark" : "";
+
+  const addTestCase = () => {
+    if (newTestCase.input && newTestCase.expected) {
+      setUserTestCases([
+        ...userTestCases,
+        {
+          ...newTestCase,
+          id: Date.now().toString(),
+        },
+      ]);
+      setNewTestCase({
+        id: "",
+        input: "",
+        expected: "",
+        description: "",
+      });
+      setShowAddTestCase(false);
+    }
+  };
+
+  const deleteTestCase = (id: string) => {
+    setUserTestCases(userTestCases.filter((tc) => tc.id !== id));
+  };
+
+  // Add this component right after the DashboardLayout opening tag
+  const SubmissionStatusOverlay = () => {
+    if (!submissionStatus.show) return null;
+
+    return (
+      <div className="fixed top-4 right-4 z-50">
+        <div className={`transform transition-all duration-500 ease-in-out ${
+          submissionStatus.show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+        }`}>
+          <div className={`flex items-center space-x-3 px-4 py-3 rounded-lg shadow-lg ${
+            submissionStatus.status === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800' 
+              : 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800'
+          }`}>
+            {submissionStatus.status === 'success' ? (
+              <CheckCircle className="w-5 h-5 text-green-500" />
+            ) : (
+              <XCircle className="w-5 h-5 text-red-500" />
+            )}
+            <span className={`text-sm font-medium ${
+              submissionStatus.status === 'success' 
+                ? 'text-green-800 dark:text-green-200' 
+                : 'text-red-800 dark:text-red-200'
+            }`}>
+              {submissionStatus.message}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // If there's an error, show error state
   if (error) {
@@ -351,24 +510,28 @@ export default function CodingPractice() {
 
   return (
     <DashboardLayout userRole='student'>
+      <SubmissionStatusOverlay />
       <div className={`${containerClass} h-screen w-full -m-6`}>
         <div className='dark:bg-gray-900 bg-white h-full flex flex-col'>
           {/* Header */}
           <header className='dark:bg-gray-800 bg-gray-100 py-3 px-6 flex items-center justify-between border-b dark:border-gray-700 border-gray-200'>
             <div className='flex items-center space-x-4'>
-              <h1 className='font-bold text-xl dark:text-white text-gray-800'>{problem.title}</h1>
+              <h1 className='font-bold text-xl dark:text-white text-gray-800'>{problem?.title}</h1>
               <span
                 className={`px-2 py-1 rounded-full text-xs 
-              ${problem.difficulty === "Easy" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : problem.difficulty === "Medium" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}
+                ${problem?.difficulty === "Easy" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : 
+                  problem?.difficulty === "Medium" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" : 
+                  "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}
               >
-                {problem.difficulty}
+                {problem?.difficulty}
               </span>
               <div className='flex space-x-1'>
-                {problem.tags.map((tag, index) => (
+                {problem?.tags.map((tag, index) => (
                   <span
                     key={index}
                     className={`px-2 py-1 rounded-full text-xs 
-                  ${index % 2 === 0 ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"}`}
+                    ${index % 2 === 0 ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" : 
+                      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"}`}
                   >
                     {tag}
                   </span>
@@ -397,19 +560,205 @@ export default function CodingPractice() {
             <div className='w-1/2 border-r dark:border-gray-700 border-gray-200 flex flex-col'>
               <div className='border-b dark:border-gray-700 border-gray-200'>
                 <div className='flex'>
-                  <button className={`px-4 py-3 text-sm font-medium ${activeTab === "problem" ? "dark:text-white text-gray-800 border-b-2 dark:border-blue-500 border-blue-600" : "dark:text-gray-400 text-gray-500"}`} onClick={() => setActiveTab("problem")}>
+                  <button 
+                    className={`px-4 py-3 text-sm font-medium ${activeTab === "problem" ? "dark:text-white text-gray-800 border-b-2 dark:border-blue-500 border-blue-600" : "dark:text-gray-400 text-gray-500"}`} 
+                    onClick={() => setActiveTab("problem")}
+                  >
                     <div className='flex items-center'>
                       <Book size={16} className='mr-2' /> Description
                     </div>
                   </button>
-                  <button className={`px-4 py-3 text-sm font-medium ${activeTab === "hints" ? "dark:text-white text-gray-800 border-b-2 dark:border-blue-500 border-blue-600" : "dark:text-gray-400 text-gray-500"}`} onClick={() => setActiveTab("hints")}>
+                  <button 
+                    className={`px-4 py-3 text-sm font-medium ${activeTab === "hints" ? "dark:text-white text-gray-800 border-b-2 dark:border-blue-500 border-blue-600" : "dark:text-gray-400 text-gray-500"}`} 
+                    onClick={() => setActiveTab("hints")}
+                  >
                     <div className='flex items-center'>
                       <Info size={16} className='mr-2' /> Hints
+                    </div>
+                  </button>
+                  <button 
+                    className={`px-4 py-3 text-sm font-medium ${activeTab === "testcases" ? "dark:text-white text-gray-800 border-b-2 dark:border-blue-500 border-blue-600" : "dark:text-gray-400 text-gray-500"}`} 
+                    onClick={() => setActiveTab("testcases")}
+                  >
+                    <div className='flex items-center'>
+                      <CheckCircle size={16} className='mr-2' /> Test Cases
+                    </div>
+                  </button>
+                  <button 
+                    className={`px-4 py-3 text-sm font-medium ${activeTab === "submissions" ? "dark:text-white text-gray-800 border-b-2 dark:border-blue-500 border-blue-600" : "dark:text-gray-400 text-gray-500"}`} 
+                    onClick={() => setActiveTab("submissions")}
+                  >
+                    <div className='flex items-center'>
+                      <MessageCircle size={16} className='mr-2' /> Submissions
                     </div>
                   </button>
                 </div>
               </div>
               <div className='flex-1 overflow-y-auto p-6 dark:text-gray-200 text-gray-800'>
+                {activeTab === "testcases" && (
+                  <div className='space-y-6'>
+                    <div className='flex justify-between items-center'>
+                      <h3 className='text-lg font-semibold'>Custom Test Cases</h3>
+                      <button
+                        onClick={() => setShowAddTestCase(true)}
+                        className='px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium flex items-center'
+                      >
+                        <Plus size={16} className='mr-2' /> Add Test Case
+                      </button>
+                    </div>
+
+                    {showAddTestCase && (
+                      <div className='border dark:border-gray-700 border-gray-200 rounded-lg p-4 space-y-4'>
+                        <div>
+                          <label className='block text-sm font-medium mb-1'>Input</label>
+                          <textarea
+                            value={newTestCase.input}
+                            onChange={(e) => setNewTestCase({ ...newTestCase, input: e.target.value })}
+                            className='w-full h-24 p-2 border dark:border-gray-700 border-gray-200 rounded-md dark:bg-gray-800 bg-white'
+                            placeholder='Enter test input...'
+                          />
+                        </div>
+                        <div>
+                          <label className='block text-sm font-medium mb-1'>Expected Output</label>
+                          <textarea
+                            value={newTestCase.expected}
+                            onChange={(e) => setNewTestCase({ ...newTestCase, expected: e.target.value })}
+                            className='w-full h-24 p-2 border dark:border-gray-700 border-gray-200 rounded-md dark:bg-gray-800 bg-white'
+                            placeholder='Enter expected output...'
+                          />
+                        </div>
+                        <div>
+                          <label className='block text-sm font-medium mb-1'>Description (Optional)</label>
+                          <input
+                            type='text'
+                            value={newTestCase.description}
+                            onChange={(e) => setNewTestCase({ ...newTestCase, description: e.target.value })}
+                            className='w-full p-2 border dark:border-gray-700 border-gray-200 rounded-md dark:bg-gray-800 bg-white'
+                            placeholder='Enter test case description...'
+                          />
+                        </div>
+                        <div className='flex justify-end space-x-2'>
+                          <button
+                            onClick={() => setShowAddTestCase(false)}
+                            className='px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-sm font-medium'
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={addTestCase}
+                            className='px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium'
+                          >
+                            Add Test Case
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className='space-y-4'>
+                      {userTestCases.map((testCase) => (
+                        <div key={testCase.id} className='border dark:border-gray-700 border-gray-200 rounded-lg overflow-hidden'>
+                          <div className='dark:bg-gray-800 bg-gray-100 px-4 py-3 flex justify-between items-center'>
+                            <div className='font-medium'>Test Case {testCase.id}</div>
+                            <button
+                              onClick={() => deleteTestCase(testCase.id)}
+                              className='text-red-500 hover:text-red-600'
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                          <div className='p-4 space-y-3'>
+                            {testCase.description && (
+                              <p className='text-sm text-gray-500 dark:text-gray-400'>{testCase.description}</p>
+                            )}
+                            <div className='grid grid-cols-2 gap-4'>
+                              <div>
+                                <label className='block text-sm font-medium mb-1'>Input</label>
+                                <pre className='bg-gray-100 dark:bg-gray-800 p-2 rounded-md text-sm'>{testCase.input}</pre>
+                              </div>
+                              <div>
+                                <label className='block text-sm font-medium mb-1'>Expected Output</label>
+                                <pre className='bg-gray-100 dark:bg-gray-800 p-2 rounded-md text-sm'>{testCase.expected}</pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {testResults && (
+                      <div className='mt-6'>
+                        <h3 className='text-lg font-semibold mb-4'>Test Results</h3>
+                        <div className='space-y-4'>
+                          {testResults.details.map((test) => (
+                            <div
+                              key={test.id}
+                              className={`border rounded-lg overflow-hidden transition-all duration-300 ${
+                                test.status === "passed"
+                                  ? "border-green-200 dark:border-green-800"
+                                  : "border-red-200 dark:border-red-800"
+                              }`}
+                            >
+                              <div
+                                className={`px-4 py-3 flex items-center justify-between ${
+                                  test.status === "passed"
+                                    ? "bg-green-50 dark:bg-green-900/30"
+                                    : "bg-red-50 dark:bg-red-900/30"
+                                }`}
+                              >
+                                <div className='flex items-center'>
+                                  {test.status === "passed" ? (
+                                    <CheckCircle size={20} className='text-green-500 mr-2' />
+                                  ) : (
+                                    <XCircle size={20} className='text-red-500 mr-2' />
+                                  )}
+                                  <span className='font-medium'>{test.name}</span>
+                                </div>
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs ${
+                                    test.status === "passed"
+                                      ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
+                                      : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
+                                  }`}
+                                >
+                                  {test.status}
+                                </span>
+                              </div>
+                              {test.expected && test.actual && (
+                                <div className='p-4 grid grid-cols-2 gap-4'>
+                                  <div>
+                                    <label className='block text-sm font-medium mb-1'>Expected</label>
+                                    <pre className='bg-gray-100 dark:bg-gray-800 p-2 rounded-md text-sm'>{test.expected}</pre>
+                                  </div>
+                                  <div>
+                                    <label className='block text-sm font-medium mb-1'>Actual</label>
+                                    <pre className='bg-gray-100 dark:bg-gray-800 p-2 rounded-md text-sm'>{test.actual}</pre>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {executionStats.time > 0 && (
+                      <div className='mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg'>
+                        <h4 className='text-sm font-medium mb-2'>Execution Statistics</h4>
+                        <div className='grid grid-cols-2 gap-4'>
+                          <div className='flex items-center'>
+                            <Clock size={16} className='mr-2 text-gray-500' />
+                            <span className='text-sm'>Time: {executionStats.time}ms</span>
+                          </div>
+                          <div className='flex items-center'>
+                            <Database size={16} className='mr-2 text-gray-500' />
+                            <span className='text-sm'>Memory: {executionStats.memory}MB</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {activeTab === "problem" && (
                   <div className='space-y-4'>
                     <div className='markdown-content'>
@@ -512,6 +861,80 @@ export default function CodingPractice() {
                     </div>
                   </div>
                 )}
+
+                {activeTab === "submissions" && (
+                  <div className='space-y-6'>
+                    <div className='flex justify-between items-center'>
+                      <h3 className='text-lg font-semibold'>Submission History</h3>
+                      <div className='flex items-center space-x-2'>
+                        <select className='px-3 py-1.5 border dark:border-gray-700 border-gray-200 rounded-md dark:bg-gray-800 bg-white text-sm'>
+                          <option value="all">All Languages</option>
+                          <option value="javascript">JavaScript</option>
+                          <option value="python">Python</option>
+                          <option value="java">Java</option>
+                        </select>
+                        <select className='px-3 py-1.5 border dark:border-gray-700 border-gray-200 rounded-md dark:bg-gray-800 bg-white text-sm'>
+                          <option value="all">All Status</option>
+                          <option value="accepted">Accepted</option>
+                          <option value="wrong_answer">Wrong Answer</option>
+                          <option value="time_limit_exceeded">Time Limit Exceeded</option>
+                          <option value="runtime_error">Runtime Error</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className='space-y-4'>
+                      {submissions.map((submission) => (
+                        <div key={submission.id} className='border dark:border-gray-700 border-gray-200 rounded-lg overflow-hidden'>
+                          <div className='dark:bg-gray-800 bg-gray-100 px-4 py-3 flex justify-between items-center'>
+                            <div className='flex items-center space-x-4'>
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                submission.status === "accepted" 
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                  : submission.status === "wrong_answer"
+                                  ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                  : submission.status === "time_limit_exceeded"
+                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                  : "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+                              }`}>
+                                {submission.status.replace(/_/g, ' ').toUpperCase()}
+                              </span>
+                              <span className='text-sm font-medium'>{new Date(submission.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div className='flex items-center space-x-4'>
+                              <span className='text-sm text-gray-500 dark:text-gray-400'>
+                                {submission.testCasesPassed}/{submission.totalTestCases} test cases passed
+                              </span>
+                              <span className='text-sm text-gray-500 dark:text-gray-400'>
+                                {submission.language}
+                              </span>
+                            </div>
+                          </div>
+                          <div className='p-4 space-y-4'>
+                            <div className='grid grid-cols-2 gap-4'>
+                              <div className='flex items-center space-x-2'>
+                                <Clock size={16} className='text-gray-500' />
+                                <span className='text-sm'>{submission.executionTime}ms</span>
+                              </div>
+                              <div className='flex items-center space-x-2'>
+                                <Database size={16} className='text-gray-500' />
+                                <span className='text-sm'>{submission.memoryUsage}MB</span>
+                              </div>
+                            </div>
+                            <div className='relative'>
+                              <pre className='bg-gray-100 dark:bg-gray-800 p-4 rounded-md overflow-x-auto text-sm'>
+                                <code>{submission.code}</code>
+                              </pre>
+                              <button className='absolute top-2 right-2 p-1 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'>
+                                <Copy size={16} className='text-gray-500' />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -599,7 +1022,7 @@ export default function CodingPractice() {
           <footer className='dark:bg-gray-800 bg-gray-100 px-6 py-2 border-t dark:border-gray-700 border-gray-200 flex items-center justify-between'>
             <div className='flex items-center text-sm dark:text-gray-400 text-gray-600'>
               <div className='mr-6'>
-                <span className='font-medium'>Problem:</span> {problem.id} - {problem.title}
+                <span className='font-medium'>Problem:</span> {problem?.id} - {problem?.title}
               </div>
               <div>
                 <span className='font-medium'>Language:</span> {language}

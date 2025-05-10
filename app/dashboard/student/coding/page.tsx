@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, Code, Clock, BarChart, Tag, Award, Users, BookOpen, CheckCircle, AlertTriangle, ChevronRight, Star, Zap, TrendingUp, Activity, Filter, Coffee, Brain } from "lucide-react";
+import { Search, Code, Clock, BarChart, Tag, Award, Users, BookOpen, CheckCircle, AlertTriangle, ChevronRight, Star, Zap, TrendingUp, Activity, Filter, Coffee, Brain, Trophy, ArrowRight, Crown } from "lucide-react";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useRouter } from "next/navigation";
 interface TestCase {
@@ -281,6 +281,255 @@ export default function ProblemListingPage() {
           </div>
         </div>
 
+        {/* Leaderboard Section - Moved up */}
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4 relative z-10'>
+          <div className='bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 mb-8 border border-gray-100 dark:border-gray-800'>
+            <div className='flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-4 md:space-y-0'>
+              <h2 className='text-2xl font-bold text-gray-900 dark:text-white flex items-center'>
+                <Trophy className='w-7 h-7 mr-3 text-amber-500 dark:text-amber-400' />
+                Top Performers
+              </h2>
+              <div className='flex items-center space-x-3'>
+                <button className='px-5 py-2.5 text-sm font-medium text-white bg-violet-600 dark:bg-violet-500 rounded-lg hover:bg-violet-700 dark:hover:bg-violet-600 transition-all duration-200 shadow-sm hover:shadow'>Weekly</button>
+                <button className='px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200'>Monthly</button>
+                <button className='px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200'>All Time</button>
+              </div>
+            </div>
+
+            <div className='overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm'>
+              <table className='w-full'>
+                <thead>
+                  <tr className='bg-gray-50 dark:bg-gray-800/80'>
+                    <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Rank</th>
+                    <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>User</th>
+                    <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Solved</th>
+                    <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Accuracy</th>
+                    <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Points</th>
+                    <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Streak</th>
+                  </tr>
+                </thead>
+                <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
+                  {[
+                    {
+                      rank: 1,
+                      name: "Alex Johnson",
+                      solved: 245,
+                      accuracy: 98.5,
+                      points: 12500,
+                      streak: 15,
+                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+                      badgeColor: "bg-gradient-to-br from-amber-300 to-yellow-500 dark:from-amber-400 dark:to-yellow-600",
+                    },
+                    {
+                      rank: 2,
+                      name: "Sarah Chen",
+                      solved: 238,
+                      accuracy: 97.8,
+                      points: 11800,
+                      streak: 12,
+                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+                      badgeColor: "bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-400 dark:to-gray-500",
+                    },
+                    {
+                      rank: 3,
+                      name: "Michael Park",
+                      solved: 230,
+                      accuracy: 96.2,
+                      points: 11200,
+                      streak: 10,
+                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
+                      badgeColor: "bg-gradient-to-br from-amber-600 to-amber-700 dark:from-amber-500 dark:to-amber-600",
+                    },
+                    {
+                      rank: 4,
+                      name: "Emma Wilson",
+                      solved: 225,
+                      accuracy: 95.8,
+                      points: 10800,
+                      streak: 8,
+                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
+                      badgeColor: "",
+                    },
+                    {
+                      rank: 5,
+                      name: "David Kim",
+                      solved: 220,
+                      accuracy: 94.5,
+                      points: 10500,
+                      streak: 7,
+                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+                      badgeColor: "",
+                    },
+                  ].map((user) => (
+                    <tr key={user.rank} className='hover:bg-gray-50/70 dark:hover:bg-gray-800/60 transition-colors'>
+                      <td className='px-6 py-4'>
+                        <div className='flex items-center'>{user.rank <= 3 ? <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${user.badgeColor} text-white`}>{user.rank === 1 ? <Crown className='w-5 h-5' /> : <span className='font-bold'>{user.rank}</span>}</div> : <div className='w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold'>{user.rank}</div>}</div>
+                      </td>
+                      <td className='px-6 py-4'>
+                        <div className='flex items-center space-x-3'>
+                          <div className='relative'>
+                            <img src={user.avatar} alt={user.name} className='w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 shadow-sm' />
+                            {user.rank === 1 && (
+                              <div className='absolute -top-1 -right-1 w-5 h-5 bg-amber-500 text-white rounded-full flex items-center justify-center shadow-sm'>
+                                <Star className='w-3 h-3' fill='white' />
+                              </div>
+                            )}
+                          </div>
+                          <span className='font-semibold text-gray-900 dark:text-white'>{user.name}</span>
+                          {user.rank === 1 && <span className='px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 rounded-full'>Leader</span>}
+                        </div>
+                      </td>
+                      <td className='px-6 py-4'>
+                        <span className='font-medium text-gray-700 dark:text-gray-300'>{user.solved}</span>
+                        <div className='text-xs text-gray-500 dark:text-gray-400'>problems</div>
+                      </td>
+                      <td className='px-6 py-4'>
+                        <div className='flex items-center space-x-2'>
+                          <div className='w-12 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
+                            <div className='h-full rounded-full bg-green-500 dark:bg-green-400' style={{ width: `${user.accuracy}%` }} />
+                          </div>
+                          <span className='font-medium text-gray-700 dark:text-gray-300'>{user.accuracy}%</span>
+                        </div>
+                      </td>
+                      <td className='px-6 py-4'>
+                        <div className='font-medium text-violet-600 dark:text-violet-400'>{user.points.toLocaleString()}</div>
+                        <div className='text-xs text-gray-500 dark:text-gray-400'>total pts</div>
+                      </td>
+                      <td className='px-6 py-4'>
+                        <div className='flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-full w-fit'>
+                          <Zap className='w-4 h-4 text-amber-500 dark:text-amber-400' />
+                          <span className='font-medium text-gray-700 dark:text-gray-300'>{user.streak}</span>
+                          <span className='text-xs text-gray-500 dark:text-gray-400'>days</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Curated Problem Sets Section */}
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4 relative z-10'>
+          <div className='bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 mb-8 border border-gray-100 dark:border-gray-800'>
+            <div className='flex items-center justify-between mb-8'>
+              <h2 className='text-2xl font-bold text-gray-900 dark:text-white flex items-center'>
+                <BookOpen className='w-7 h-7 mr-3 text-violet-600 dark:text-violet-400' />
+                Curated Problem Sets
+              </h2>
+              <button className='px-5 py-2.5 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center'>
+                View All Sets
+                <ArrowRight className='w-4 h-4 ml-2' />
+              </button>
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
+              {[
+                {
+                  title: "Top 50 Interview Questions",
+                  description: "Master the most frequently asked coding interview questions",
+                  problems: 50,
+                  difficulty: "Mixed",
+                  progress: 75,
+                  icon: <Code className='w-6 h-6 text-white' />,
+                  gradient: "from-blue-600 to-indigo-700",
+                  bgGradient: "from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20",
+                  borderColor: "border-blue-100 dark:border-blue-800/40",
+                  progressColor: "bg-blue-600 dark:bg-blue-500",
+                  buttonGradient: "from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800",
+                  stats: [
+                    { label: "Easy", value: "20" },
+                    { label: "Medium", value: "25" },
+                    { label: "Hard", value: "5" },
+                  ],
+                },
+                {
+                  title: "Data Structures Mastery",
+                  description: "Comprehensive coverage of essential data structures",
+                  problems: 40,
+                  difficulty: "Medium",
+                  progress: 60,
+                  icon: <Activity className='w-6 h-6 text-white' />,
+                  gradient: "from-purple-600 to-pink-600",
+                  bgGradient: "from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20",
+                  borderColor: "border-purple-100 dark:border-purple-800/40",
+                  progressColor: "bg-purple-600 dark:bg-purple-500",
+                  buttonGradient: "from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
+                  stats: [
+                    { label: "Arrays", value: "15" },
+                    { label: "Trees", value: "10" },
+                    { label: "Graphs", value: "15" },
+                  ],
+                },
+                {
+                  title: "Algorithm Patterns",
+                  description: "Learn common algorithm patterns and techniques",
+                  problems: 35,
+                  difficulty: "Hard",
+                  progress: 45,
+                  icon: <Brain className='w-6 h-6 text-white' />,
+                  gradient: "from-emerald-600 to-teal-600",
+                  bgGradient: "from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20",
+                  borderColor: "border-emerald-100 dark:border-emerald-800/40",
+                  progressColor: "bg-emerald-600 dark:bg-emerald-500",
+                  buttonGradient: "from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700",
+                  stats: [
+                    { label: "DP", value: "12" },
+                    { label: "Greedy", value: "8" },
+                    { label: "Backtrack", value: "15" },
+                  ],
+                },
+              ].map((set, index) => (
+                <div key={index} className={`group relative overflow-hidden bg-gradient-to-br ${set.bgGradient} rounded-xl border ${set.borderColor} hover:shadow-2xl transition-all duration-400 transform ease-in-out`}>
+                  <div className='p-7 relative z-10'>
+                    <div className='flex items-start justify-between mb-5'>
+                      <div className={`bg-gradient-to-br p-3.5 rounded-xl shadow-lg ${set.gradient}`}>
+                        <div className='text-white'>{set.icon}</div>
+                      </div>
+                      <span className={`px-3.5 py-1.5 text-sm font-medium rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-700`}>{set.difficulty}</span>
+                    </div>
+
+                    <h3 className='text-xl font-bold text-gray-900 dark:text-white mb-2.5 group-hover:text-violet-700 dark:group-hover:text-violet-400 transition-colors'>{set.title}</h3>
+                    <p className='text-gray-600 dark:text-gray-300 mb-6'>{set.description}</p>
+
+                    <div className='space-y-5'>
+                      <div className='grid grid-cols-3 gap-3'>
+                        {set.stats.map((stat, idx) => (
+                          <div key={idx} className='text-center p-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm'>
+                            <div className='text-lg font-semibold text-gray-900 dark:text-white'>{stat.value}</div>
+                            <div className='text-xs font-medium text-gray-500 dark:text-gray-400'>{stat.label}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className='space-y-2.5'>
+                        <div className='flex items-center justify-between'>
+                          <span className='text-gray-600 dark:text-gray-400 text-sm font-medium'>Progress</span>
+                          <span className='font-semibold text-gray-900 dark:text-white'>{set.progress}%</span>
+                        </div>
+                        <div className='h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
+                          <div className={`h-full rounded-full transition-all duration-500 ${set.progressColor}`} style={{ width: `${set.progress}%` }} />
+                        </div>
+                      </div>
+
+                      <button
+                        className={`w-full inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white rounded-lg transition-all duration-300 shadow-md hover:shadow-lg bg-gradient-to-r ${set.buttonGradient}`}
+                        onClick={() => {
+                          router.push("/dashboard/student/coding/sheet/1");
+                        }}
+                      >
+                        Continue Set
+                        <ArrowRight className='ml-2 w-4 h-4' />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
           {/* Filter & Stats Container */}
           <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10'>
@@ -386,7 +635,7 @@ export default function ProblemListingPage() {
           </div>
 
           {/* Language Filter */}
-          <div className='mb-8'>
+          {/* <div className='mb-8'>
             <div className='flex items-center mb-4'>
               <Code className='w-5 h-5 text-indigo-600 mr-2' />
               <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>Filter by Language</h3>
@@ -398,7 +647,7 @@ export default function ProblemListingPage() {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Featured Section */}
           {showFeatured && featuredProblems.length > 0 && (
@@ -600,6 +849,9 @@ export default function ProblemListingPage() {
           </div>
 
           {/* Learning Resources Section */}
+
+          {/* Leaderboard Section */}
+
           <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8'>
             <h2 className='text-2xl font-bold text-gray-900 dark:text-white mb-6'>Learning Resources</h2>
 
@@ -641,7 +893,6 @@ export default function ProblemListingPage() {
               </div>
             </div>
           </div>
-
           {/* Call to Action */}
           <div className='relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg p-8 mb-6'>
             <div className='absolute inset-0 bg-[url("data:image/svg+xml,%3Csvg%20width%3D%2730%27%20height%3D%2730%27%20viewBox%3D%270%200%2030%2030%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M15%200C6.716%200%200%206.716%200%2015c0%208.284%206.716%2015%2015%2015%208.284%200%2015-6.716%2015-15%200-8.284-6.716-15-15-15zm0%2030C6.716%2030%200%2023.284%200%2015%200%206.716%206.716%200%2015%200c8.284%200%2015%206.716%2015%2015%200%208.284-6.716%2015-15%2015z%27%20fill%3D%27%23ffffff%27%20fill-opacity%3D%270.05%27%20fill-rule%3D%27nonzero%27%2F%3E%3C%2Fsvg%3E")] opacity-20'></div>
