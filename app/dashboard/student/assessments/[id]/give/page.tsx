@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, ReactElement } from "react";
-import { Clock, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Flag, Eye, EyeOff, Save, CheckSquare, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Clock, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Flag, Eye, EyeOff, Save, CheckSquare, ArrowLeft, ArrowRight, AlertTriangle, Maximize, Minimize, Menu, X, Camera, Video, Info, Layout, Grid, Moon, Sun } from "lucide-react";
 
 // Type definitions
 interface Section {
@@ -25,7 +25,7 @@ interface Question {
   expanded: boolean;
   sectionId: number;
   flagged: boolean;
-  userAnswer: any; // This will be properly typed based on question type
+  userAnswer: any;
   options?: string[];
   correctAnswer?: number;
   correctAnswers?: number[];
@@ -45,21 +45,9 @@ interface Question {
   images?: string[];
 }
 
-interface QuestionProps {
-  question: Question;
-  index: number;
-  onChange: (index: number, answer: any) => void;
-}
-
-interface MatchingQuestionProps {
-  question: Question;
-  index: number;
-  onChange: (index: number, leftId: number, rightId: number) => void;
-}
-
-// Main assessment component
-export default function AssessmentUI() {
-  // Sample data - in a real app this would come from an API
+// Main component
+export default function EnhancedAssessmentUI() {
+  // States
   const [sections, setSections] = useState<Section[]>([
     {
       id: 1,
@@ -107,7 +95,7 @@ export default function AssessmentUI() {
       isTrue: true,
       points: 1,
       expanded: false,
-      sectionId: 2,
+      sectionId: 1,
       userAnswer: null,
       flagged: false,
     },
@@ -171,31 +159,212 @@ export default function AssessmentUI() {
       userAnswer: {},
       flagged: false,
     },
+    {
+      id: 8,
+      type: "singleChoice",
+      question: "Which of these is not a JavaScript framework?",
+      options: ["Angular", "React", "Django", "Vue"],
+      correctAnswer: 2,
+      points: 2,
+      expanded: false,
+      sectionId: 1,
+      userAnswer: null,
+      flagged: false,
+    },
+    {
+      id: 9,
+      type: "fillBlank",
+      question: "In SQL, the command to retrieve data from a database is _____.",
+      answer: "SELECT",
+      alternativeAnswers: ["SELECT", "select"],
+      caseSensitive: false,
+      points: 1,
+      expanded: false,
+      sectionId: 1,
+      userAnswer: "",
+      flagged: false,
+    },
+    {
+      id: 10,
+      type: "multipleChoice",
+      question: "Which of these data structures are linear?",
+      options: ["Array", "Tree", "Linked List", "Graph"],
+      correctAnswers: [0, 2],
+      points: 3,
+      expanded: false,
+      sectionId: 2,
+      userAnswer: [],
+      flagged: false,
+    },
+    {
+      id: 11,
+      type: "trueFalse",
+      question: "HTTP is a stateless protocol.",
+      isTrue: true,
+      points: 1,
+      expanded: false,
+      sectionId: 2,
+      userAnswer: null,
+      flagged: false,
+    },
+    {
+      id: 12,
+      type: "shortAnswer",
+      question: "What design pattern is used to create a single instance of a class?",
+      acceptableAnswers: ["Singleton", "Singleton Pattern"],
+      caseSensitive: false,
+      points: 2,
+      expanded: false,
+      sectionId: 2,
+      userAnswer: "",
+      flagged: false,
+    },
+    {
+      id: 13,
+      type: "coding",
+      question: "Write a function to reverse a string.",
+      language: "javascript",
+      boilerplateCode: "function reverseString(str) {\n  // Your code here\n}",
+      testCases: [
+        { id: 1, input: '"hello"', expectedOutput: '"olleh"', isHidden: false },
+        { id: 2, input: '""', expectedOutput: '""', isHidden: false },
+      ],
+      points: 3,
+      expanded: false,
+      sectionId: 1,
+      userAnswer: "function reverseString(str) {\n  // Your code here\n}",
+      flagged: false,
+    },
+    {
+      id: 14,
+      type: "singleChoice",
+      question: "Which symbol is used for the spread operator in JavaScript?",
+      options: ["&", "...", "*", "=>"],
+      correctAnswer: 1,
+      points: 1,
+      expanded: false,
+      sectionId: 1,
+      userAnswer: null,
+      flagged: false,
+    },
+    {
+      id: 15,
+      type: "matching",
+      question: "Match the HTTP status code with its meaning.",
+      pairs: [
+        { left: "200", right: "OK" },
+        { left: "404", right: "Not Found" },
+        { left: "500", right: "Internal Server Error" },
+        { left: "301", right: "Moved Permanently" },
+      ],
+      points: 4,
+      expanded: false,
+      sectionId: 2,
+      userAnswer: {},
+      flagged: false,
+    },
+    {
+      id: 16,
+      type: "multipleChoice",
+      question: "Which of these are valid CSS selectors?",
+      options: [".class", "#id", "*element", "&hover"],
+      correctAnswers: [0, 1],
+      points: 2,
+      expanded: false,
+      sectionId: 1,
+      userAnswer: [],
+      flagged: false,
+    },
+    {
+      id: 17,
+      type: "fillBlank",
+      question: "The command to create a new Git branch is git _____ branch-name.",
+      answer: "checkout -b",
+      alternativeAnswers: ["checkout -b", "branch"],
+      caseSensitive: false,
+      points: 2,
+      expanded: false,
+      sectionId: 2,
+      userAnswer: "",
+      flagged: false,
+    },
+    {
+      id: 18,
+      type: "trueFalse",
+      question: "CSS stands for Cascading Style Sheets.",
+      isTrue: true,
+      points: 1,
+      expanded: false,
+      sectionId: 1,
+      userAnswer: null,
+      flagged: false,
+    },
   ]);
 
-  // Timer settings
-  const initialTime = 60 * 60; // 60 minutes in seconds
-  const [timeRemaining, setTimeRemaining] = useState<number>(initialTime);
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
+  // UI States
+  const [welcomeScreen, setWelcomeScreen] = useState(true);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isIdentityVerified, setIsIdentityVerified] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(60 * 60); // 60 minutes
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [gridView, setGridView] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [assessmentSubmitted, setAssessmentSubmitted] = useState(false);
+  const [currentSectionId, setCurrentSectionId] = useState(1);
 
-  // UI state
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [showQuestionList, setShowQuestionList] = useState<boolean>(true);
-  const [showInstructions, setShowInstructions] = useState<boolean>(true);
-  const [confirmSubmit, setConfirmSubmit] = useState<boolean>(false);
-  const [assessmentSubmitted, setAssessmentSubmitted] = useState<boolean>(false);
-  const [darkMode, setDarkMode] = useState<boolean>(false);
-
+  useEffect(() => {
+    // Set default theme to light mode on initial page load
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+    localStorage.setItem("theme", "light");
+  }, []);
   // Format time remaining as MM:SS
-  const formatTime = (seconds: number): string => {
+  const formatTime = (seconds: any) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // Handle fullscreen toggle
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err: any) => {
+        console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+      setIsFullScreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullScreen(false);
+      }
+    }
+  };
+
+  // Handle start assessment
+  const startAssessment = () => {
+    setWelcomeScreen(false);
+    setIsTimerRunning(true);
+    toggleFullScreen();
+  };
+
+  // Handle identity verification
+  const verifyIdentity = () => {
+    setShowCamera(true);
+  };
+
+  const completeVerification = () => {
+    setShowCamera(false);
+    setIsIdentityVerified(true);
+  };
+
   // Timer effect
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: any;
     if (isTimerRunning && timeRemaining > 0 && !assessmentSubmitted) {
       timer = setInterval(() => {
         setTimeRemaining((prev) => prev - 1);
@@ -206,7 +375,7 @@ export default function AssessmentUI() {
     return () => clearInterval(timer);
   }, [isTimerRunning, timeRemaining, assessmentSubmitted]);
 
-  // Calculate the number of questions answered
+  // Calculate stats
   const answeredQuestions = questions.filter((q) => {
     if (q.type === "singleChoice" || q.type === "trueFalse") {
       return q.userAnswer !== null;
@@ -220,48 +389,45 @@ export default function AssessmentUI() {
     return false;
   }).length;
 
-  // Calculate total points
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
-
-  // Calculate flagged questions
   const flaggedQuestions = questions.filter((q) => q.flagged).length;
 
-  // Handle question navigation
-  const goToNextQuestion = (): void => {
+  // Navigation functions
+  const goToNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
-  const goToPreviousQuestion = (): void => {
+  const goToPreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
-  const goToQuestion = (index: number): void => {
+  const goToQuestion = (index: any) => {
     setCurrentQuestionIndex(index);
-    if (window.innerWidth < 768) {
-      setShowQuestionList(false);
+    if (window.innerWidth < 768 && !gridView) {
+      setSidebarCollapsed(true);
     }
   };
 
   // Handle flag toggle
-  const toggleFlag = (index: number): void => {
+  const toggleFlag = (index: any) => {
     const updatedQuestions = [...questions];
     updatedQuestions[index].flagged = !updatedQuestions[index].flagged;
     setQuestions(updatedQuestions);
   };
 
   // Handle question answers
-  const handleAnswerChange = (questionIndex: number, answer: any): void => {
+  const handleAnswerChange = (questionIndex: any, answer: any) => {
     const updatedQuestions = [...questions];
     updatedQuestions[questionIndex].userAnswer = answer;
     setQuestions(updatedQuestions);
   };
 
   // Handle matching question answers
-  const handleMatchingAnswer = (questionIndex: number, leftId: number, rightId: number): void => {
+  const handleMatchingAnswer = (questionIndex: any, leftId: any, rightId: any) => {
     const updatedQuestions = [...questions];
     const currentAnswers = { ...updatedQuestions[questionIndex].userAnswer };
     currentAnswers[leftId] = rightId;
@@ -270,9 +436,9 @@ export default function AssessmentUI() {
   };
 
   // Handle multiple choice answers
-  const handleMultipleChoiceAnswer = (questionIndex: number, optionIndex: number): void => {
+  const handleMultipleChoiceAnswer = (questionIndex: any, optionIndex: any) => {
     const updatedQuestions = [...questions];
-    const currentAnswers = [...(updatedQuestions[questionIndex].userAnswer as number[])];
+    const currentAnswers = [...(updatedQuestions[questionIndex].userAnswer || [])];
 
     const optionPosition = currentAnswers.indexOf(optionIndex);
     if (optionPosition === -1) {
@@ -285,10 +451,9 @@ export default function AssessmentUI() {
     setQuestions(updatedQuestions);
   };
 
-  // Handle assessment submission
-  const handleSubmitAssessment = (): void => {
+  // Handle submission
+  const handleSubmitAssessment = () => {
     if (confirmSubmit) {
-      // In a real app, this would send data to a server
       setAssessmentSubmitted(true);
       setIsTimerRunning(false);
     } else {
@@ -297,685 +462,829 @@ export default function AssessmentUI() {
   };
 
   // Cancel submission
-  const cancelSubmit = (): void => {
+  const cancelSubmit = () => {
     setConfirmSubmit(false);
   };
 
   // Toggle dark mode
-  const toggleDarkMode = (): void => {
+  const toggleDarkMode = () => {
+    if (darkMode) {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      localStorage.setItem("theme", "light");
+    } else {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
     setDarkMode(!darkMode);
   };
 
-  // Get questions for current section
-  const questionsForCurrentSection = questions.filter((q) => q.sectionId === sections[0].id);
+  // Get questions by section
+  const questionsBySection = sections.map((section: any) => ({
+    section,
+    questions: questions.filter((q) => q.sectionId === section.id),
+  }));
 
-  // Render appropriate question component based on type
-  const renderQuestion = (question: Question, index: number): ReactElement => {
-    switch (question.type) {
+  // Helper function to get global index from question ID
+  const getGlobalIndex = (questionId: number) => {
+    return questions.findIndex((q) => q.id === questionId);
+  };
+
+  // Question Type Icons
+  const getQuestionTypeIcon = (type: any) => {
+    switch (type) {
       case "singleChoice":
-        return <SingleChoiceQuestion question={question} index={index} onChange={handleAnswerChange} />;
+        return "⭕";
       case "multipleChoice":
-        return <MultipleChoiceQuestion question={question} index={index} onChange={handleMultipleChoiceAnswer} />;
+        return "☑️";
       case "trueFalse":
-        return <TrueFalseQuestion question={question} index={index} onChange={handleAnswerChange} />;
+        return "❓";
       case "fillBlank":
-        return <FillBlankQuestion question={question} index={index} onChange={handleAnswerChange} />;
+        return "➖";
       case "coding":
-        return <CodingQuestion question={question} index={index} onChange={handleAnswerChange} />;
+        return "💻";
       case "shortAnswer":
-        return <ShortAnswerQuestion question={question} index={index} onChange={handleAnswerChange} />;
+        return "✏️";
       case "matching":
-        return <MatchingQuestion question={question} index={index} onChange={handleMatchingAnswer} />;
+        return "🔄";
       default:
-        return <div>Unsupported question type</div>;
+        return "❓";
     }
   };
 
-  return (
-    <div className={`min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50"}`}>
-      {/* Header */}
-      <header className={`${darkMode ? "bg-gray-800" : "bg-white"} shadow-md py-3 px-4 flex items-center justify-between sticky top-0 z-10`}>
-        <h1 className='text-xl font-bold'>Programming Assessment</h1>
+  // Render question grid
+  const renderQuestionGrid = () => {
+    return (
+      <div className='w-full h-full p-6'>
+        {questionsBySection.map(({ section, questions: sectionQuestions }: any) => (
+          <div key={section.id} className={`mb-8 p-4 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow`}>
+            <h2 className='text-xl font-bold mb-4'>{section.title}</h2>
+            <p className='text-gray-500 dark:text-gray-400 mb-6'>{section.description}</p>
 
-        <div className='flex items-center space-x-4'>
-          {/* Time remaining */}
-          <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full 
-            ${timeRemaining < 300 ? "bg-red-100 text-red-800" : timeRemaining < 600 ? "bg-yellow-100 text-yellow-800" : darkMode ? "bg-gray-700" : "bg-blue-100 text-blue-800"}`}
-          >
-            <Clock className='w-4 h-4' />
-            <span className='font-mono font-bold'>{formatTime(timeRemaining)}</span>
-          </div>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+              {sectionQuestions.map((question: any) => {
+                const globalIndex = getGlobalIndex(question.id);
+                const isAnswered = question.type === "singleChoice" || question.type === "trueFalse" 
+                  ? question.userAnswer !== null 
+                  : question.type === "multipleChoice" 
+                    ? Array.isArray(question.userAnswer) && question.userAnswer.length > 0 
+                    : question.type === "fillBlank" || question.type === "shortAnswer" || question.type === "coding" 
+                      ? typeof question.userAnswer === "string" && question.userAnswer.trim() !== "" 
+                      : question.type === "matching" 
+                        ? typeof question.userAnswer === "object" && Object.keys(question.userAnswer).length === question.pairs?.length 
+                        : false;
 
-          {/* Progress indicator */}
-          <div
-            className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-full 
-            ${darkMode ? "bg-gray-700" : "bg-green-100 text-green-800"}`}
-          >
-            <CheckCircle className='w-4 h-4' />
-            <span>
-              {answeredQuestions}/{questions.length} Questions
-            </span>
-          </div>
-
-          {/* Dark mode toggle */}
-          <button onClick={toggleDarkMode} className={`p-2 rounded-full ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"}`}>
-            {darkMode ? "☀️" : "🌙"}
-          </button>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <div className='container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6'>
-        {/* Sidebar with question list */}
-        <div className={`md:w-1/4 ${showQuestionList ? "block" : "hidden md:block"}`}>
-          <div className={`sticky top-20 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg p-4`}>
-            <div className='flex justify-between items-center mb-4'>
-              <h2 className='font-bold text-lg'>Questions</h2>
-              <button onClick={() => setShowQuestionList(!showQuestionList)} className='md:hidden p-2 rounded-full bg-gray-200'>
-                <ArrowLeft className='w-4 h-4' />
-              </button>
-            </div>
-
-            {/* Progress bar */}
-            <div className='mb-4'>
-              <div className='flex justify-between text-sm mb-1'>
-                <span>
-                  {answeredQuestions} of {questions.length} answered
-                </span>
-                <span>{Math.round((answeredQuestions / questions.length) * 100)}%</span>
-              </div>
-              <div className={`h-2 rounded-full ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
-                <div className='h-2 rounded-full bg-blue-500' style={{ width: `${(answeredQuestions / questions.length) * 100}%` }}></div>
-              </div>
-            </div>
-
-            {/* Question navigation list */}
-            <div className='space-y-2 max-h-[calc(100vh-240px)] overflow-y-auto'>
-              {questions.map((q, index) => (
-                <button
-                  key={q.id}
-                  onClick={() => goToQuestion(index)}
-                  className={`w-full flex items-center justify-between p-2 rounded-md text-left text-sm
-                    ${index === currentQuestionIndex ? (darkMode ? "bg-blue-900 text-white" : "bg-blue-500 text-white") : darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}
-                    ${q.flagged ? (darkMode ? "border-l-4 border-yellow-500" : "border-l-4 border-yellow-500") : ""}
-                  `}
-                >
-                  <div className='flex items-center gap-2'>
-                    <span
-                      className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs 
-                      ${q.userAnswer !== null && 
-                        ((q.type === 'multipleChoice' && q.userAnswer.length > 0) || 
-                         (q.type === 'fillBlank' && q.userAnswer.trim() !== '') || 
-                         (q.type === 'shortAnswer' && q.userAnswer.trim() !== '') ||
-                         (q.type === 'coding' && q.userAnswer !== q.boilerplateCode) ||
-                         (q.type === 'matching' && Object.keys(q.userAnswer).length === q.pairs.length) ||
-                         q.type === 'singleChoice' ||
-                         q.type === 'trueFalse'
-                        ) ? 
-                        (darkMode ? 'bg-green-700 text-white' : 'bg-green-500 text-white') : 
-                        (darkMode ? 'bg-gray-700 text-white' : 'bg-gray-300')}"
-                    >
-                      {index + 1}
-                    </span>
-                    <span className='truncate max-w-[120px]'>{q.question.length > 20 ? q.question.substring(0, 20) + "..." : q.question}</span>
-                  </div>
-                  <div className='flex items-center'>
-                    {q.flagged && <Flag className='w-4 h-4 text-yellow-500' />}
-                    <span className='text-xs ml-1'>{q.points} pts</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Stats at bottom of sidebar */}
-            <div className={`mt-4 pt-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"} text-sm space-y-2`}>
-              <div className='flex justify-between'>
-                <span>Total Points:</span>
-                <span className='font-bold'>{totalPoints}</span>
-              </div>
-              <div className='flex justify-between'>
-                <span>Flagged Questions:</span>
-                <span className={`font-bold ${flaggedQuestions > 0 ? "text-yellow-500" : ""}`}>{flaggedQuestions}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main question area */}
-        <div className='md:w-3/4'>
-          {showQuestionList && !assessmentSubmitted && (
-            <button onClick={() => setShowQuestionList(false)} className='md:hidden mb-4 flex items-center gap-2 p-2 bg-blue-500 text-white rounded-md'>
-              <ArrowRight /> View Current Question
-            </button>
-          )}
-
-          {/* Instructions panel (shows only at start) */}
-          {showInstructions && !assessmentSubmitted && (
-            <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg p-6 mb-6`}>
-              <div className='flex justify-between items-center mb-4'>
-                <h2 className='text-xl font-bold'>Assessment Instructions</h2>
-                <button onClick={() => setShowInstructions(false)} className={`p-1 rounded-full ${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}`}>
-                  ✕
-                </button>
-              </div>
-              <div className='space-y-3'>
-                <p>Welcome to your programming assessment! Please read the following instructions carefully:</p>
-                <ul className='list-disc list-inside space-y-2'>
-                  <li>
-                    You have <strong>60 minutes</strong> to complete this assessment.
-                  </li>
-                  <li>
-                    There are <strong>{questions.length} questions</strong> worth a total of <strong>{totalPoints} points</strong>.
-                  </li>
-                  <li>You can navigate between questions using the sidebar or the next/previous buttons.</li>
-                  <li>Flag questions you want to review later by clicking the flag icon.</li>
-                  <li>Your answers are saved automatically as you work.</li>
-                  <li>Click "Submit Assessment" when you are finished or when time runs out.</li>
-                </ul>
-                <div className='mt-6 flex justify-end'>
-                  <button onClick={() => setShowInstructions(false)} className='px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition'>
-                    Begin Assessment
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Question content */}
-          {!assessmentSubmitted ? (
-            <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg`}>
-              {/* Question header */}
-              <div className={`p-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"} flex justify-between items-center`}>
-                <div className='flex items-center gap-2'>
-                  <span
-                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium 
-                    ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}
-                  >
-                    {currentQuestionIndex + 1}
-                  </span>
-                  <div>
-                    <span className='text-sm opacity-75'>
-                      Question {currentQuestionIndex + 1} of {questions.length}
-                    </span>
-                    <div className='flex items-center gap-2'>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>{questions[currentQuestionIndex].type === "singleChoice" ? "Single Choice" : questions[currentQuestionIndex].type === "multipleChoice" ? "Multiple Choice" : questions[currentQuestionIndex].type === "trueFalse" ? "True/False" : questions[currentQuestionIndex].type === "fillBlank" ? "Fill in the Blank" : questions[currentQuestionIndex].type === "coding" ? "Coding" : questions[currentQuestionIndex].type === "shortAnswer" ? "Short Answer" : questions[currentQuestionIndex].type === "matching" ? "Matching" : questions[currentQuestionIndex].type}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${darkMode ? "bg-blue-900 text-blue-200" : "bg-blue-100 text-blue-800"}`}>
-                        {questions[currentQuestionIndex].points} {questions[currentQuestionIndex].points === 1 ? "point" : "points"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <button onClick={() => toggleFlag(currentQuestionIndex)} className={`p-2 rounded-full ${questions[currentQuestionIndex].flagged ? "text-yellow-500" : darkMode ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-gray-900"}`} title={questions[currentQuestionIndex].flagged ? "Unflag question" : "Flag for review"}>
-                  <Flag className='w-5 h-5' />
-                </button>
-              </div>
-
-              {/* Question content */}
-              <div className='p-6'>{renderQuestion(questions[currentQuestionIndex], currentQuestionIndex)}</div>
-
-              {/* Question navigation footer */}
-              <div className={`p-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"} flex justify-between`}>
-                <button
-                  onClick={goToPreviousQuestion}
-                  disabled={currentQuestionIndex === 0}
-                  className={`px-4 py-2 flex items-center gap-2 rounded-md 
-                    ${currentQuestionIndex === 0 ? (darkMode ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-gray-200 text-gray-400 cursor-not-allowed") : darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}
-                  `}
-                >
-                  <ChevronLeft className='w-5 h-5' />
-                  Previous
-                </button>
-
-                <div className='flex gap-3'>
+                return (
                   <button
-                    onClick={() => setShowQuestionList(!showQuestionList)}
-                    className={`md:hidden px-4 py-2 flex items-center gap-2 rounded-md 
-                      ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}`}
+                    key={question.id}
+                    onClick={() => {
+                      goToQuestion(globalIndex);
+                      setGridView(false);
+                    }}
+                    className={`p-4 rounded-lg border-2 transition-all hover:scale-105
+                      ${question.flagged ? "border-yellow-500" : isAnswered ? (darkMode ? "border-green-600" : "border-green-500") : darkMode ? "border-gray-700" : "border-gray-300"}
+                      ${currentQuestionIndex === globalIndex ? (darkMode ? "bg-blue-900 text-white" : "bg-blue-50") : darkMode ? "bg-gray-800" : "bg-white"}
+                    `}
                   >
-                    Questions
-                  </button>
-
-                  {currentQuestionIndex === questions.length - 1 ? (
-                    <button onClick={handleSubmitAssessment} className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center gap-2'>
-                      <Save className='w-5 h-5' />
-                      Submit Assessment
-                    </button>
-                  ) : (
-                    <button onClick={goToNextQuestion} className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center gap-2'>
-                      Next
-                      <ChevronRight className='w-5 h-5' />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <SubmissionSummary questions={questions} totalPoints={totalPoints} darkMode={darkMode} />
-          )}
-        </div>
-      </div>
-
-      {/* Confirmation modal */}
-      {confirmSubmit && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
-          <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-xl p-6 max-w-md w-full`}>
-            <div className='flex items-center gap-3 mb-4'>
-              <AlertTriangle className='w-6 h-6 text-yellow-500' />
-              <h3 className='text-xl font-bold'>Confirm Submission</h3>
-            </div>
-            <p className='mb-6'>
-              Are you sure you want to submit your assessment? You have answered {answeredQuestions} out of {questions.length} questions.
-            </p>
-            <div className='flex justify-end gap-3'>
-              <button onClick={cancelSubmit} className={`px-4 py-2 rounded-md ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}`}>
-                Cancel
-              </button>
-              <button onClick={handleSubmitAssessment} className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600'>
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile question list toggle */}
-      {!showQuestionList && !assessmentSubmitted && (
-        <button onClick={() => setShowQuestionList(true)} className='md:hidden fixed bottom-4 left-4 w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-lg'>
-          <CheckSquare className='w-6 h-6' />
-        </button>
-      )}
-    </div>
-  );
-}
-
-// Question component type definitions
-function SingleChoiceQuestion({ question, index, onChange }: QuestionProps): ReactElement {
-  return (
-    <div>
-      <h3 className='text-lg font-medium mb-4'>{question.question}</h3>
-      {question.imageUrl && (
-        <div className='mb-4'>
-          <img src={question.imageUrl} alt='Question' className='max-w-full rounded-lg shadow-sm' />
-        </div>
-      )}
-      <div className='space-y-3 mt-4'>
-        {question.options?.map((option, optionIndex) => (
-          <div key={optionIndex} className='flex items-center'>
-            <label className='flex items-center w-full p-3 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
-              <input type='radio' className='form-radio h-5 w-5 text-blue-500' checked={question.userAnswer === optionIndex} onChange={() => onChange(index, optionIndex)} />
-              <span className='ml-3'>{option}</span>
-              {question.optionImages?.[optionIndex] && <img src={question.optionImages[optionIndex]} alt={`Option ${optionIndex + 1}`} className='ml-4 h-10 object-contain' />}
-            </label>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MultipleChoiceQuestion({ question, index, onChange }: QuestionProps): ReactElement {
-  return (
-    <div>
-      <h3 className='text-lg font-medium mb-4'>{question.question}</h3>
-      {question.imageUrl && (
-        <div className='mb-4'>
-          <img src={question.imageUrl} alt='Question' className='max-w-full rounded-lg shadow-sm' />
-        </div>
-      )}
-      <div className='space-y-3 mt-4'>
-        {question.options?.map((option, optionIndex) => (
-          <div key={optionIndex} className='flex items-center'>
-            <label className='flex items-center w-full p-3 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
-              <input type='checkbox' className='form-checkbox h-5 w-5 text-blue-500' checked={(question.userAnswer as number[])?.includes(optionIndex)} onChange={() => onChange(index, optionIndex)} />
-              <span className='ml-3'>{option}</span>
-              {question.optionImages?.[optionIndex] && <img src={question.optionImages[optionIndex]} alt={`Option ${optionIndex + 1}`} className='ml-4 h-10 object-contain' />}
-            </label>
-          </div>
-        ))}
-      </div>
-      <p className='text-sm mt-3 italic opacity-70'>Select all that apply</p>
-    </div>
-  );
-}
-
-function TrueFalseQuestion({ question, index, onChange }: QuestionProps): ReactElement {
-  return (
-    <div>
-      <h3 className='text-lg font-medium mb-4'>{question.question}</h3>
-      {question.imageUrl && (
-        <div className='mb-4'>
-          <img src={question.imageUrl} alt='Question' className='max-w-full rounded-lg shadow-sm' />
-        </div>
-      )}
-      <div className='flex gap-4 mt-6'>
-        <label className='flex items-center p-4 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex-1 justify-center'>
-          <input type='radio' className='form-radio h-5 w-5 text-blue-500' checked={question.userAnswer === true} onChange={() => onChange(index, true)} />
-          <span className='ml-3 font-medium'>True</span>
-        </label>
-        <label className='flex items-center p-4 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex-1 justify-center'>
-          <input type='radio' className='form-radio h-5 w-5 text-blue-500' checked={question.userAnswer === false} onChange={() => onChange(index, false)} />
-          <span className='ml-3 font-medium'>False</span>
-        </label>
-      </div>
-    </div>
-  );
-}
-
-function FillBlankQuestion({ question, index, onChange }: QuestionProps): ReactElement {
-  return (
-    <div>
-      <h3 className='text-lg font-medium mb-4'>
-        {question.question.split("_____").map((part, i, arr) => (
-          <span key={i}>
-            {part}
-            {i < arr.length - 1 && <input type='text' className='border-b-2 border-blue-500 mx-1 px-1 py-0 focus:outline-none w-32 bg-transparent' value={question.userAnswer as string} onChange={(e) => onChange(index, e.target.value)} placeholder='Enter answer' />}
-          </span>
-        ))}
-      </h3>
-      {question.imageUrl && (
-        <div className='mb-4'>
-          <img src={question.imageUrl} alt='Question' className='max-w-full rounded-lg shadow-sm' />
-        </div>
-      )}
-      {question.images && question.images.length > 0 && (
-        <div className='grid grid-cols-2 gap-4 mt-4'>
-          {question.images.map((img, imgIndex) => (
-            <div key={imgIndex} className='border rounded-lg overflow-hidden'>
-              <img src={img} alt={`Reference ${imgIndex + 1}`} className='w-full' />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CodingQuestion({ question, index, onChange }: QuestionProps): ReactElement {
-  return (
-    <div>
-      <h3 className='text-lg font-medium mb-4'>{question.question}</h3>
-      {question.imageUrl && (
-        <div className='mb-4'>
-          <img src={question.imageUrl} alt='Question' className='max-w-full rounded-lg shadow-sm' />
-        </div>
-      )}
-
-      <div className='grid md:grid-cols-2 gap-6 mt-6'>
-        <div>
-          <div className='flex justify-between items-center mb-2'>
-            <h4 className='font-medium'>Your Solution ({question.language})</h4>
-            <div className='text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'>{question.language}</div>
-          </div>
-          <textarea className='w-full h-64 p-3 font-mono text-sm border rounded-lg focus:ring focus:ring-blue-300 focus:outline-none bg-gray-50 dark:bg-gray-900' value={question.userAnswer as string} onChange={(e) => onChange(index, e.target.value)} />
-        </div>
-
-        <div>
-          <div className='space-y-4'>
-            <div>
-              <h4 className='font-medium mb-2'>Sample Input</h4>
-              <div className='p-3 font-mono text-sm border rounded-lg bg-gray-50 dark:bg-gray-900 overflow-x-auto'>{question.sampleInput}</div>
-            </div>
-
-            <div>
-              <h4 className='font-medium mb-2'>Expected Output</h4>
-              <div className='p-3 font-mono text-sm border rounded-lg bg-gray-50 dark:bg-gray-900 overflow-x-auto'>{question.sampleOutput}</div>
-            </div>
-
-            <div>
-              <h4 className='font-medium mb-2'>Test Cases</h4>
-              <div className='space-y-2'>
-                {question.testCases
-                  ?.filter((tc) => !tc.isHidden)
-                  .map((testCase) => (
-                    <div key={testCase.id} className='p-3 border rounded-lg bg-gray-50 dark:bg-gray-900'>
-                      <div className='grid grid-cols-2 gap-2'>
-                        <div>
-                          <div className='text-xs text-gray-500 mb-1'>Input:</div>
-                          <div className='font-mono text-sm'>{testCase.input}</div>
-                        </div>
-                        <div>
-                          <div className='text-xs text-gray-500 mb-1'>Expected Output:</div>
-                          <div className='font-mono text-sm'>{testCase.expectedOutput}</div>
-                        </div>
+                    <div className='flex items-center justify-between mb-2'>
+                      <span
+                        className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold
+                        ${isAnswered ? (darkMode ? "bg-green-700 text-white" : "bg-green-500 text-white") : darkMode ? "bg-gray-700 text-white" : "bg-gray-300 text-gray-700"}
+                      `}
+                      >
+                        {globalIndex + 1}
+                      </span>
+                      <div className='flex gap-1'>
+                        <span title={question.type} className='text-lg'>
+                          {getQuestionTypeIcon(question.type)}
+                        </span>
+                        {question.flagged && <Flag className='h-5 w-5 text-yellow-500' />}
                       </div>
                     </div>
-                  ))}
-                {question.testCases?.some((tc) => tc.isHidden) && <div className='text-xs italic opacity-70 mt-1'>+ {question.testCases.filter((tc) => tc.isHidden).length} hidden test case(s)</div>}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ShortAnswerQuestion({ question, index, onChange }: QuestionProps): ReactElement {
-  return (
-    <div>
-      <h3 className='text-lg font-medium mb-4'>{question.question}</h3>
-      {question.imageUrl && (
-        <div className='mb-4'>
-          <img src={question.imageUrl} alt='Question' className='max-w-full rounded-lg shadow-sm' />
-        </div>
-      )}
-      <div className='mt-6'>
-        <input type='text' className='w-full p-3 border rounded-lg focus:ring focus:ring-blue-300 focus:outline-none bg-transparent' placeholder='Enter your answer' value={question.userAnswer as string} onChange={(e) => onChange(index, e.target.value)} />
-      </div>
-    </div>
-  );
-}
-
-function MatchingQuestion({ question, index, onChange }: MatchingQuestionProps): ReactElement {
-  // Create arrays of left and right items for drag/drop matching
-  const leftItems = question.pairs?.map((pair, i) => ({ id: i, text: pair.left })) || [];
-  const rightItems = question.pairs?.map((pair, i) => ({ id: i, text: pair.right })) || [];
-
-  return (
-    <div>
-      <h3 className='text-lg font-medium mb-4'>{question.question}</h3>
-      {question.imageUrl && (
-        <div className='mb-4'>
-          <img src={question.imageUrl} alt='Question' className='max-w-full rounded-lg shadow-sm' />
-        </div>
-      )}
-
-      <div className='mt-6 space-y-4'>
-        {leftItems.map((leftItem) => (
-          <div key={leftItem.id} className='flex items-center gap-4'>
-            <div className='w-1/2 p-3 border rounded-lg bg-gray-50 dark:bg-gray-900'>{leftItem.text}</div>
-            <div className='w-8 text-center'>→</div>
-            <div className='w-1/2'>
-              <select
-                className='w-full p-3 border rounded-lg focus:ring focus:ring-blue-300 focus:outline-none bg-transparent'
-                value={(question.userAnswer as Record<number, number>)[leftItem.id]?.toString() || ""}
-                onChange={(e) => {
-                  const rightId = e.target.value !== "" ? parseInt(e.target.value) : -1;
-                  if (rightId !== -1) {
-                    onChange(index, leftItem.id, rightId);
-                  }
-                }}
-              >
-                <option value=''>-- Select match --</option>
-                {rightItems.map((rightItem) => (
-                  <option key={rightItem.id} value={rightItem.id} disabled={Object.values(question.userAnswer as Record<number, number>).includes(rightItem.id) && (question.userAnswer as Record<number, number>)[leftItem.id] !== rightItem.id}>
-                    {rightItem.text}
-                  </option>
-                ))}
-              </select>
+                    <div className='text-left'>
+                      <p className='text-sm font-medium line-clamp-2'>{question.question}</p>
+                      <div className='flex justify-between items-center mt-3'>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full
+                          ${darkMode ? "bg-gray-700" : "bg-gray-200"}
+                        `}
+                        >
+                          {question.points} {question.points === 1 ? "pt" : "pts"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
       </div>
-    </div>
-  );
-}
+    );
+  };
 
-interface SubmissionSummaryProps {
-  questions: Question[];
-  totalPoints: number;
-  darkMode: boolean;
-}
+  // Render question component
+  const renderQuestion = (question: any, index: any) => {
+    if (!question) return null;
 
-function SubmissionSummary({ questions, totalPoints, darkMode }: SubmissionSummaryProps): ReactElement {
-  const [score, setScore] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
+    const progressPercentage = ((index + 1) / questions.length) * 100;
 
-  useEffect(() => {
-    // Simulate score calculation
-    const timer = setTimeout(() => {
-      // For demo, calculate a random score between 60-95% of total points
-      const calculatedScore = Math.floor(totalPoints * (0.6 + Math.random() * 0.35));
-      setScore(calculatedScore);
-      setLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [totalPoints]);
-
-  // Group questions by section
-  const sectionMap = questions.reduce<Record<number, Question[]>>((acc, question) => {
-    if (!acc[question.sectionId]) {
-      acc[question.sectionId] = [];
-    }
-    acc[question.sectionId].push(question);
-    return acc;
-  }, {});
-
-  // Calculate score per section
-  const sectionScores = Object.keys(sectionMap).map((sectionId) => {
-    const sectionQuestions = sectionMap[parseInt(sectionId)];
-    const sectionTotalPoints = sectionQuestions.reduce((sum, q) => sum + q.points, 0);
-    // For demo, calculate random section scores that sum up to the total score
-    const sectionScore = Math.floor(sectionTotalPoints * (score / totalPoints) * (0.8 + Math.random() * 0.4));
-    return {
-      sectionId: parseInt(sectionId),
-      title: sectionId === "1" ? "Basic Programming Concepts" : "Advanced Topics",
-      totalPoints: sectionTotalPoints,
-      score: Math.min(sectionScore, sectionTotalPoints), // Ensure section score doesn't exceed max
-    };
-  });
-
-  // Ensure section scores sum to total score
-  const sumSectionScores = sectionScores.reduce((sum, s) => sum + s.score, 0);
-  if (sumSectionScores !== score) {
-    const diff = score - sumSectionScores;
-    sectionScores[0].score += diff;
-  }
-
-  if (loading) {
     return (
-      <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg p-8 text-center`}>
-        <div className='flex flex-col items-center justify-center py-12'>
-          <div className='animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mb-4'></div>
-          <h3 className='text-xl font-semibold'>Calculating Your Score</h3>
-          <p className='mt-2 opacity-75'>Please wait while we evaluate your answers...</p>
+      <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg p-4`}>
+        {/* Question navigation header */}
+        <div className={`flex justify-between items-center pb-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+          <div className='flex items-center gap-2'>
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold
+              ${darkMode ? "bg-gray-700 text-white" : "bg-blue-100 text-blue-800"}
+            `}
+            >
+              {index + 1}
+            </div>
+            <div>
+              <div className='text-sm opacity-75'>
+                Question {index + 1} of {questions.length}
+              </div>
+              <div className='flex flex-wrap gap-2 mt-1'>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full
+                  ${darkMode ? "bg-gray-700" : "bg-gray-200"}
+                `}
+                >
+                  {question.type.charAt(0).toUpperCase() + question.type.slice(1)}
+                </span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full
+                  ${darkMode ? "bg-blue-900 text-blue-100" : "bg-blue-100 text-blue-800"}
+                `}
+                >
+                  {question.points} {question.points === 1 ? "point" : "points"}
+                </span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full
+                  ${darkMode ? "bg-purple-900 text-purple-100" : "bg-purple-100 text-purple-800"}
+                `}
+                >
+                  {sections.find((s: any) => s.id === question.sectionId)?.title}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className='flex items-center gap-2'>
+            <button
+              onClick={() => toggleFlag(index)}
+              className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700
+                ${question.flagged ? "text-yellow-500" : "text-gray-400"}
+              `}
+              title={question.flagged ? "Remove flag" : "Flag for review"}
+            >
+              <Flag className='w-5 h-5' />
+            </button>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className='mt-2 mb-6'>
+          <div className={`h-1 ${darkMode ? "bg-gray-700" : "bg-gray-200"} rounded-full w-full`}>
+            <div className='h-1 bg-blue-500 rounded-full transition-all duration-300' style={{ width: `${progressPercentage}%` }} />
+          </div>
+        </div>
+
+        {/* Question content */}
+        <div className='py-6'>
+          <h3 className='text-xl font-medium mb-6'>{question.question}</h3>
+
+          {/* Render specific question type UI */}
+          {question.type === "singleChoice" && (
+            <div className='space-y-3 mt-6'>
+              {question.options?.map((option: any, optionIndex: any) => (
+                <label
+                  key={optionIndex}
+                  className={`flex items-center w-full p-4 rounded-lg border cursor-pointer transition-colors
+                    ${question.userAnswer === optionIndex ? (darkMode ? "border-blue-500 bg-blue-900 bg-opacity-20" : "border-blue-500 bg-blue-50") : darkMode ? "border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-50"}
+                  `}
+                >
+                  <input type='radio' className='form-radio h-5 w-5 text-blue-500' checked={question.userAnswer === optionIndex} onChange={() => handleAnswerChange(index, optionIndex)} />
+                  <span className='ml-3'>{option}</span>
+                </label>
+              ))}
+            </div>
+          )}
+
+          {question.type === "multipleChoice" && (
+            <div className='space-y-3 mt-6'>
+              {question.options?.map((option: any, optionIndex: any) => (
+                <label
+                  key={optionIndex}
+                  className={`flex items-center w-full p-4 rounded-lg border cursor-pointer transition-colors
+                    ${(question.userAnswer || []).includes(optionIndex) ? (darkMode ? "border-blue-500 bg-blue-900 bg-opacity-20" : "border-blue-500 bg-blue-50") : darkMode ? "border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-50"}
+                  `}
+                >
+                  <input type='checkbox' className='form-checkbox h-5 w-5 text-blue-500' checked={(question.userAnswer || []).includes(optionIndex)} onChange={() => handleMultipleChoiceAnswer(index, optionIndex)} />
+                  <span className='ml-3'>{option}</span>
+                </label>
+              ))}
+              <p className='text-sm italic opacity-70 mt-2'>Select all that apply</p>
+            </div>
+          )}
+
+          {question.type === "trueFalse" && (
+            <div className='flex gap-4 mt-6'>
+              <label
+                className={`flex items-center p-6 rounded-lg border cursor-pointer transition-colors flex-1 justify-center
+                  ${question.userAnswer === true ? (darkMode ? "border-blue-500 bg-blue-900 bg-opacity-20" : "border-blue-500 bg-blue-50") : darkMode ? "border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-50"}
+                `}
+              >
+                <input type='radio' className='form-radio h-5 w-5 text-blue-500' checked={question.userAnswer === true} onChange={() => handleAnswerChange(index, true)} />
+                <span className='ml-3 font-medium text-lg'>True</span>
+              </label>
+              <label
+                className={`flex items-center p-6 rounded-lg border cursor-pointer transition-colors flex-1 justify-center
+                  ${question.userAnswer === false ? (darkMode ? "border-blue-500 bg-blue-900 bg-opacity-20" : "border-blue-500 bg-blue-50") : darkMode ? "border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-50"}
+                `}
+              >
+                <input type='radio' className='form-radio h-5 w-5 text-blue-500' checked={question.userAnswer === false} onChange={() => handleAnswerChange(index, false)} />
+                <span className='ml-3 font-medium text-lg'>False</span>
+              </label>
+            </div>
+          )}
+
+          {question.type === "fillBlank" && (
+            <div className='mt-6'>
+              <h3 className='text-lg font-medium'>
+                {question.question.split("_____").map((part: any, i: any, arr: any) => (
+                  <span key={i}>
+                    {part}
+                    {i < arr.length - 1 && (
+                      <input
+                        type='text'
+                        className={`border-b-2 border-blue-500 mx-1 px-2 py-1 focus:outline-none min-w-32 bg-transparent
+                          ${darkMode ? "text-white" : "text-black"}
+                        `}
+                        value={question.userAnswer || ""}
+                        onChange={(e) => handleAnswerChange(index, e.target.value)}
+                        placeholder='Enter answer'
+                      />
+                    )}
+                  </span>
+                ))}
+              </h3>
+            </div>
+          )}
+
+          {question.type === "shortAnswer" && (
+            <div className='mt-6'>
+              <input
+                type='text'
+                className={`w-full p-4 border rounded-lg focus:ring focus:ring-blue-300 focus:outline-none
+                  ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}
+                `}
+                placeholder='Enter your answer'
+                value={question.userAnswer || ""}
+                onChange={(e) => handleAnswerChange(index, e.target.value)}
+              />
+            </div>
+          )}
+
+          {question.type === "coding" && (
+            <div className='grid md:grid-cols-2 gap-6 mt-6'>
+              <div>
+                <div className='flex justify-between items-center mb-2'>
+                  <span className='font-medium'>Code Editor</span>
+                  <div className='text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-700'>{question.language}</div>
+                </div>
+                <textarea
+                  className={`w-full h-64 p-4 font-mono text-sm border rounded-lg focus:ring focus:ring-blue-300 focus:outline-none
+          ${darkMode ? "bg-gray-900 border-gray-700 text-gray-200" : "bg-gray-50 border-gray-300"}
+        `}
+                  value={question.userAnswer || question.boilerplateCode || ""}
+                  onChange={(e) => handleAnswerChange(index, e.target.value)}
+                  placeholder='Write your code here...'
+                />
+              </div>
+              <div>
+                <div className='mb-4'>
+                  <div className='font-medium mb-2'>Sample Input</div>
+                  <div
+                    className={`p-3 rounded-lg font-mono text-sm
+          ${darkMode ? "bg-gray-900 text-gray-300" : "bg-gray-100"}
+        `}
+                  >
+                    {question.sampleInput}
+                  </div>
+                </div>
+                <div>
+                  <div className='font-medium mb-2'>Expected Output</div>
+                  <div
+                    className={`p-3 rounded-lg font-mono text-sm
+          ${darkMode ? "bg-gray-900 text-gray-300" : "bg-gray-100"}
+        `}
+                  >
+                    {question.sampleOutput}
+                  </div>
+                </div>
+
+                <div className='mt-4'>
+                  <div className='font-medium mb-2'>Test Cases</div>
+                  <div className='space-y-2'>
+                    {question.testCases
+                      ?.filter((test: any) => !test.isHidden)
+                      .map((test: any) => (
+                        <div
+                          key={test.id}
+                          className={`p-3 rounded-lg text-sm border
+                ${darkMode ? "bg-gray-900 border-gray-700" : "bg-gray-50 border-gray-200"}
+              `}
+                        >
+                          <div className='flex justify-between text-xs mb-1'>
+                            <span>Input:</span>
+                            <span>Expected Output:</span>
+                          </div>
+                          <div className='flex justify-between font-mono'>
+                            <span>{test.input}</span>
+                            <span>{test.expectedOutput}</span>
+                          </div>
+                        </div>
+                      ))}
+                    {question.testCases?.filter((test: any) => test.isHidden).length > 0 && (
+                      <div
+                        className={`p-3 rounded-lg text-sm flex items-center gap-2
+              ${darkMode ? "bg-gray-900 text-gray-400" : "bg-gray-50 text-gray-500"}
+            `}
+                      >
+                        <EyeOff className='w-4 h-4' />
+                        <span>{question.testCases.filter((test: any) => test.isHidden).length} hidden test case(s)</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {question.type === "matching" && (
+            <div className='mt-6'>
+              <div className='grid md:grid-cols-2 gap-8'>
+                <div className='space-y-3'>
+                  <h4 className='font-medium mb-2'>Items</h4>
+                  {question.pairs?.map((pair: any, pairIndex: any) => (
+                    <div
+                      key={pairIndex}
+                      className={`p-4 rounded-lg border
+              ${darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"}
+            `}
+                    >
+                      {pair.left}
+                    </div>
+                  ))}
+                </div>
+
+                <div className='space-y-3'>
+                  <h4 className='font-medium mb-2'>Matches</h4>
+                  {question.pairs?.map((pair: any, pairIndex: any) => (
+                    <select
+                      key={pairIndex}
+                      className={`w-full p-4 rounded-lg border appearance-none
+              ${darkMode ? "bg-gray-900 border-gray-700 text-white" : "bg-white border-gray-300"}
+            `}
+                      value={question.userAnswer?.[pairIndex] ?? ""}
+                      onChange={(e) => handleMatchingAnswer(index, pairIndex, parseInt(e.target.value))}
+                    >
+                      <option value=''>-- Select a match --</option>
+                      {question.pairs?.map((matchPair: any, matchIndex: any) => (
+                        <option key={matchIndex} value={matchIndex}>
+                          {matchPair.right}
+                        </option>
+                      ))}
+                    </select>
+                  ))}
+                </div>
+              </div>
+
+              <div className='mt-6'>
+                {question.pairs?.map((pair: any, pairIndex: any) => {
+                  if (question.userAnswer?.[pairIndex] !== undefined) {
+                    const matchedWith = question.pairs[question.userAnswer[pairIndex]].right;
+                    return (
+                      <div key={pairIndex} className='flex items-center gap-3 mb-2'>
+                        <div
+                          className={`px-3 py-2 rounded
+                ${darkMode ? "bg-blue-900 text-blue-200" : "bg-blue-100 text-blue-800"}
+              `}
+                        >
+                          {pair.left}
+                        </div>
+                        <ArrowRight className='w-4 h-4' />
+                        <div
+                          className={`px-3 py-2 rounded
+                ${darkMode ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800"}
+              `}
+                        >
+                          {matchedWith}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Navigation buttons */}
+          <div className='flex justify-between items-center mt-8 pt-4 border-t border-gray-200 dark:border-gray-700'>
+            <button
+              onClick={goToPreviousQuestion}
+              disabled={index === 0}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg
+      ${index === 0 ? "opacity-50 cursor-not-allowed" : darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"}
+    `}
+            >
+              <ChevronLeft className='w-5 h-5' />
+              Previous
+            </button>
+
+            <button
+              onClick={goToNextQuestion}
+              disabled={index === questions.length - 1}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg
+      ${index === questions.length - 1 ? "opacity-50 cursor-not-allowed" : darkMode ? "bg-blue-600 hover:bg-blue-500" : "bg-blue-500 hover:bg-blue-600 text-white"}
+    `}
+            >
+              Next
+              <ChevronRight className='w-5 h-5' />
+            </button>
+          </div>
         </div>
       </div>
     );
-  }
+  };
 
-  const percentage = Math.round((score / totalPoints) * 100);
-  let grade = "";
-  let gradeColor = "";
-
-  if (percentage >= 90) {
-    grade = "A";
-    gradeColor = darkMode ? "text-green-400" : "text-green-600";
-  } else if (percentage >= 80) {
-    grade = "B";
-    gradeColor = darkMode ? "text-blue-400" : "text-blue-600";
-  } else if (percentage >= 70) {
-    grade = "C";
-    gradeColor = darkMode ? "text-yellow-400" : "text-yellow-600";
-  } else if (percentage >= 60) {
-    grade = "D";
-    gradeColor = darkMode ? "text-orange-400" : "text-orange-600";
-  } else {
-    grade = "F";
-    gradeColor = darkMode ? "text-red-400" : "text-red-600";
-  }
-
-  return (
-    <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-lg p-6`}>
-      <div className='text-center py-8'>
-        <h2 className='text-2xl font-bold mb-6'>Assessment Complete!</h2>
-
-        <div className='max-w-md mx-auto'>
-          {/* Score summary */}
-          <div className='flex justify-between items-center py-6 border-y'>
-            <div className='text-left'>
-              <p className='opacity-75'>Your Score</p>
-              <p className='text-2xl font-bold'>
-                {score} / {totalPoints}
-              </p>
-            </div>
-            <div className='text-right'>
-              <p className='opacity-75'>Grade</p>
-              <p className={`text-4xl font-bold ${gradeColor}`}>{grade}</p>
-            </div>
+  // Render final page when assessment is submitted
+  const renderSubmittedPage = () => {
+    return (
+      <div
+        className={`flex flex-col items-center justify-center h-full py-12
+  ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50"}
+`}
+      >
+        <div
+          className={`max-w-3xl w-full mx-auto p-8 rounded-lg shadow-lg
+    ${darkMode ? "bg-gray-800" : "bg-white"}
+  `}
+        >
+          <div className='flex flex-col items-center mb-8'>
+            <CheckCircle className='w-16 h-16 text-green-500 mb-4' />
+            <h2 className='text-2xl font-bold mb-2'>Assessment Submitted</h2>
+            <p className='text-center text-gray-500 dark:text-gray-400'>Your assessment has been successfully submitted.</p>
           </div>
 
-          {/* Progress circle */}
-          <div className='relative w-48 h-48 mx-auto my-8'>
-            <svg viewBox='0 0 100 100' className='w-full'>
-              {/* Background circle */}
-              <circle cx='50' cy='50' r='40' fill='none' stroke={darkMode ? "#374151" : "#e5e7eb"} strokeWidth='8' />
-              {/* Progress circle */}
-              <circle
-                cx='50'
-                cy='50'
-                r='40'
-                fill='none'
-                stroke={
-                  percentage >= 90
-                    ? "#10B981" // green
-                    : percentage >= 80
-                    ? "#3B82F6" // blue
-                    : percentage >= 70
-                    ? "#F59E0B" // yellow
-                    : percentage >= 60
-                    ? "#F97316" // orange
-                    : "#EF4444" // red
-                }
-                strokeWidth='8'
-                strokeDasharray='251.2'
-                strokeDashoffset={251.2 - (251.2 * percentage) / 100}
-                strokeLinecap='round'
-                transform='rotate(-90 50 50)'
-              />
-              <text x='50' y='55' fontSize='16' fontWeight='bold' textAnchor='middle' fill='currentColor'>
-                {percentage}%
-              </text>
-            </svg>
-          </div>
-
-          {/* Section scores */}
-          <div className='mt-6 space-y-4'>
-            <h3 className='font-bold text-lg'>Section Breakdown</h3>
-            {sectionScores.map((section) => (
-              <div key={section.sectionId} className={`p-4 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
-                <div className='flex justify-between mb-2'>
-                  <h4 className='font-medium'>{section.title}</h4>
-                  <p className='font-medium'>
-                    {section.score} / {section.totalPoints}
-                  </p>
-                </div>
-                <div className={`h-2 rounded-full ${darkMode ? "bg-gray-600" : "bg-gray-300"}`}>
-                  <div className='h-2 rounded-full bg-blue-500' style={{ width: `${(section.score / section.totalPoints) * 100}%` }} />
-                </div>
+          <div className='grid md:grid-cols-3 gap-6 mb-8'>
+            <div
+              className={`p-6 rounded-lg text-center
+        ${darkMode ? "bg-gray-700" : "bg-blue-50"}
+      `}
+            >
+              <div className='text-3xl font-bold mb-2'>
+                {answeredQuestions}/{questions.length}
               </div>
-            ))}
-          </div>
-        </div>
+              <div className='text-sm text-gray-500 dark:text-gray-400'>Questions Answered</div>
+            </div>
 
-        {/* Action buttons */}
-        <div className='mt-8 flex flex-col sm:flex-row justify-center gap-4'>
-          <button className={`px-6 py-3 rounded-lg font-medium ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}`}>View Detailed Results</button>
-          <button className='px-6 py-3 rounded-lg font-medium bg-blue-500 text-white hover:bg-blue-600'>Return to Dashboard</button>
+            <div
+              className={`p-6 rounded-lg text-center
+        ${darkMode ? "bg-gray-700" : "bg-green-50"}
+      `}
+            >
+              <div className='text-3xl font-bold mb-2'>
+                {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, "0")}
+              </div>
+              <div className='text-sm text-gray-500 dark:text-gray-400'>Time Remaining</div>
+            </div>
+
+            <div
+              className={`p-6 rounded-lg text-center
+        ${darkMode ? "bg-gray-700" : "bg-yellow-50"}
+      `}
+            >
+              <div className='text-3xl font-bold mb-2'>{totalPoints}</div>
+              <div className='text-sm text-gray-500 dark:text-gray-400'>Total Points Possible</div>
+            </div>
+          </div>
+
+          <p className='text-center mb-8'>Your instructor will review your answers and provide feedback soon.</p>
+
+          <button
+            className={`w-full py-3 rounded-lg font-medium text-center
+        ${darkMode ? "bg-blue-600 hover:bg-blue-500" : "bg-blue-500 hover:bg-blue-600 text-white"}
+      `}
+            onClick={() => window.location.reload()}
+          >
+            Return to Dashboard
+          </button>
         </div>
       </div>
+    );
+  };
+
+  // Render confirm submit modal
+  const renderConfirmSubmitModal = () => {
+    return (
+      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+        <div
+          className={`max-w-md w-full p-6 rounded-lg shadow-lg
+    ${darkMode ? "bg-gray-800" : "bg-white"}
+  `}
+        >
+          <div className='flex flex-col items-center mb-6'>
+            <AlertCircle className='w-12 h-12 text-yellow-500 mb-4' />
+            <h2 className='text-xl font-bold mb-2'>Submit Assessment?</h2>
+            <p className='text-center text-gray-500 dark:text-gray-400'>Are you sure you want to submit your assessment? You cannot change your answers after submission.</p>
+          </div>
+
+          <div className='grid grid-cols-2 gap-4 mt-6'>
+            <button
+              className={`py-3 rounded-lg font-medium
+          ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}
+        `}
+              onClick={cancelSubmit}
+            >
+              Continue Working
+            </button>
+            <button className='py-3 rounded-lg font-medium bg-blue-500 hover:bg-blue-600 text-white' onClick={handleSubmitAssessment}>
+              Submit Assessment
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render identity verification modal
+  const renderIdentityVerificationModal = () => {
+    return (
+      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+        <div
+          className={`max-w-md w-full p-6 rounded-lg shadow-lg
+    ${darkMode ? "bg-gray-800" : "bg-white"}
+  `}
+        >
+          <div className='flex justify-between items-center mb-6'>
+            <h2 className='text-xl font-bold'>Identity Verification</h2>
+            <button onClick={() => setShowCamera(false)} className='p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700'>
+              <X className='w-5 h-5' />
+            </button>
+          </div>
+
+          <div
+            className={`aspect-video bg-black rounded-lg flex items-center justify-center mb-6
+      ${darkMode ? "border border-gray-700" : ""}
+    `}
+          >
+            {showCamera ? (
+              <div className='relative w-full h-full'>
+                <div className='absolute inset-0 flex items-center justify-center'>
+                  <Camera className='w-12 h-12 text-white opacity-20' />
+                </div>
+                {/* Camera would be initialized here in a real app */}
+              </div>
+            ) : (
+              <div className='text-center p-8'>
+                <Camera className='w-12 h-12 mx-auto mb-4 text-gray-500' />
+                <p className='text-gray-500 dark:text-gray-400'>Camera access is required for identity verification</p>
+              </div>
+            )}
+          </div>
+
+          <p className='text-sm text-gray-500 dark:text-gray-400 mb-6'>Please position your face within the frame and click "Verify" to confirm your identity</p>
+
+          <button className='w-full py-3 rounded-lg font-medium text-white bg-blue-500 hover:bg-blue-600' onClick={completeVerification}>
+            Verify Identity
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Render welcome screen
+  const renderWelcomeScreen = () => {
+    return (
+      <div
+        className={`fixed inset-0 flex items-center justify-center
+  ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100"}
+`}
+      >
+        <div
+          className={`max-w-3xl w-full mx-auto p-8 rounded-lg shadow-lg
+    ${darkMode ? "bg-gray-800" : "bg-white"}
+  `}
+        >
+          <div className='text-center mb-8'>
+            <h1 className='text-3xl font-bold mb-2'>Programming Skills Assessment</h1>
+            <p className='text-gray-500 dark:text-gray-400'>Welcome to your programming assessment. Please read the instructions carefully before beginning.</p>
+          </div>
+
+          {showInstructions && (
+            <div
+              className={`p-6 rounded-lg mb-8
+        ${darkMode ? "bg-gray-700" : "bg-gray-50"}
+      `}
+            >
+              <h2 className='text-xl font-bold mb-4'>Instructions</h2>
+              <ul className='space-y-3 list-disc pl-6'>
+                <li>
+                  This assessment contains {questions.length} questions worth a total of {totalPoints} points.
+                </li>
+                <li>You have 60 minutes to complete the assessment.</li>
+                <li>Answer all questions to the best of your ability.</li>
+                <li>You can flag questions to review later.</li>
+                <li>For coding questions, make sure to test your solutions before submitting.</li>
+                <li>Once you submit the assessment, you cannot change your answers.</li>
+                <li>The assessment must be completed in one sitting.</li>
+                <li>The assessment will be submitted automatically when the time expires.</li>
+                <li>Identity verification is required before beginning.</li>
+              </ul>
+            </div>
+          )}
+
+          <div className='flex flex-col space-y-4'>
+            {!isIdentityVerified ? (
+              <button className='w-full py-3 rounded-lg font-medium bg-blue-500 hover:bg-blue-600 text-white' onClick={verifyIdentity}>
+                Verify Identity to Begin
+              </button>
+            ) : (
+              <button className='w-full py-3 rounded-lg font-medium bg-green-500 hover:bg-green-600 text-white' onClick={startAssessment}>
+                Begin Assessment
+              </button>
+            )}
+            <button
+              className={`w-full py-3 rounded-lg font-medium
+          ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}
+        `}
+              onClick={() => setShowInstructions(!showInstructions)}
+            >
+              {showInstructions ? "Hide Instructions" : "Show Instructions"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Main render function
+  return (
+    <div className={`min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+      {welcomeScreen ? (
+        renderWelcomeScreen()
+      ) : assessmentSubmitted ? (
+        renderSubmittedPage()
+      ) : (
+        <div className='relative h-screen flex flex-col'>
+          {/* Header */}
+          <header
+            className={`p-4 flex items-center justify-between shadow-md
+        ${darkMode ? "bg-gray-800" : "bg-white"}
+      `}
+          >
+            <div className='flex items-center space-x-4'>
+              <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className='p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700'>
+                {sidebarCollapsed ? <Menu className='w-5 h-5' /> : <X className='w-5 h-5' />}
+              </button>
+              <h1 className='text-xl font-bold'>Programming Assessment</h1>
+            </div>
+
+            <div className='flex items-center space-x-4'>
+              <div
+                className={`px-4 py-2 rounded-full font-mono
+            ${darkMode ? "bg-gray-700" : "bg-gray-100"}
+          `}
+              >
+                <Clock className='w-4 h-4 inline-block mr-2' />
+                {formatTime(timeRemaining)}
+              </div>
+
+              <div className='flex space-x-2'>
+                <button onClick={toggleFullScreen} className='p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700' title={isFullScreen ? "Exit fullscreen" : "Enter fullscreen"}>
+                  {isFullScreen ? <Minimize className='w-5 h-5' /> : <Maximize className='w-5 h-5' />}
+                </button>
+                <button onClick={toggleDarkMode} className='p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700' title={darkMode ? "Light mode" : "Dark mode"}>
+                  {darkMode ? <Sun className='w-5 h-5' /> : <Moon className='w-5 h-5' />}
+                </button>
+                <button onClick={() => setGridView(!gridView)} className='p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700' title={gridView ? "Question view" : "Grid view"}>
+                  {gridView ? <Layout className='w-5 h-5' /> : <Grid className='w-5 h-5' />}
+                </button>
+              </div>
+
+              <button onClick={() => setConfirmSubmit(true)} className='px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white'>
+                Submit Assessment
+              </button>
+            </div>
+          </header>
+
+          {/* Main content */}
+          <div className='flex flex-1 overflow-hidden'>
+            {/* Sidebar */}
+            <aside
+              className={`
+            ${sidebarCollapsed ? "hidden md:w-0 md:min-w-0" : "w-64 md:w-72"}
+            transition-all duration-300 overflow-y-auto
+            ${darkMode ? "bg-gray-800" : "bg-white"}
+            ${sidebarCollapsed ? "md:hidden" : ""}
+          `}
+            >
+              <div className='p-4'>
+                <div className='flex justify-between items-center mb-4'>
+                  <h2 className='font-bold'>Questions</h2>
+                  <div className='text-sm'>
+                    {answeredQuestions}/{questions.length} answered
+                  </div>
+                </div>
+
+                <div className='h-2 bg-gray-200 dark:bg-gray-700 rounded-full mb-6'>
+                  <div className='h-2 bg-blue-500 rounded-full transition-all' style={{ width: `${(answeredQuestions / questions.length) * 100}%` }} />
+                </div>
+
+                <div className='flex gap-2 mb-4 flex-wrap'>
+                  <div className='text-xs px-2 py-1 rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'>{answeredQuestions} Answered</div>
+                  <div className='text-xs px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'>{flaggedQuestions} Flagged</div>
+                  <div className='text-xs px-2 py-1 rounded bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'>{questions.length - answeredQuestions} Unanswered</div>
+                </div>
+
+                {sections.map((section) => (
+                  <div key={section.id} className='mb-4'>
+                    <button
+                      className={`w-full text-left p-2 rounded-lg mb-2 flex justify-between items-center
+                    ${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}
+                  `}
+                      onClick={() => {
+                        const updatedSections = sections.map((s) => ({
+                          ...s,
+                          expanded: s.id === section.id ? !s.expanded : s.expanded,
+                        }));
+                        setSections(updatedSections);
+                      }}
+                    >
+                      <span className='font-medium'>{section.title}</span>
+                      <ChevronRight className={`w-5 h-5 transition-transform ${section.expanded ? "transform rotate-90" : ""}`} />
+                    </button>
+
+                    {section.expanded && (
+                      <div className='ml-2 space-y-1'>
+                        {questions
+                          .filter((q) => q.sectionId === section.id)
+                          .map((question) => {
+                            const globalIndex = getGlobalIndex(question.id);
+                            const isAnswered = question.type === "singleChoice" || question.type === "trueFalse" 
+                              ? question.userAnswer !== null 
+                              : question.type === "multipleChoice" 
+                                ? Array.isArray(question.userAnswer) && question.userAnswer.length > 0 
+                                : question.type === "fillBlank" || question.type === "shortAnswer" || question.type === "coding" 
+                                  ? typeof question.userAnswer === "string" && question.userAnswer.trim() !== "" 
+                                  : question.type === "matching" 
+                                    ? typeof question.userAnswer === "object" && Object.keys(question.userAnswer).length === question.pairs?.length 
+                                    : false;
+
+                            return (
+                              <button
+                                key={question.id}
+                                className={`w-full flex items-center p-2 rounded-lg text-left
+                              ${globalIndex === currentQuestionIndex ? (darkMode ? "bg-blue-900" : "bg-blue-100") : darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}
+                            `}
+                                onClick={() => goToQuestion(globalIndex)}
+                              >
+                                <span
+                                  className={`w-6 h-6 flex items-center justify-center rounded-full text-xs mr-2
+                                ${isAnswered ? (darkMode ? "bg-green-700 text-white" : "bg-green-500 text-white") : darkMode ? "bg-gray-700 text-white" : "bg-gray-300 text-gray-700"}
+                              `}
+                                >
+                                  {globalIndex + 1}
+                                </span>
+                                <span className='truncate flex-1'>{question.question.substring(0, 20)}...</span>
+                                <div className='flex items-center gap-1'>
+                                  {question.flagged && <Flag className='w-4 h-4 text-yellow-500' />}
+                                  <span className='text-xs px-1.5 rounded bg-gray-200 dark:bg-gray-700'>{question.points}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </aside>
+
+            {/* Main question area */}
+            <main className='flex-1 overflow-y-auto p-4'>{gridView ? renderQuestionGrid() : renderQuestion(questions[currentQuestionIndex], currentQuestionIndex)}</main>
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
+      {confirmSubmit && renderConfirmSubmitModal()}
+      {showCamera && renderIdentityVerificationModal()}
     </div>
   );
 }

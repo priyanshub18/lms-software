@@ -4,22 +4,25 @@ import { useState, useEffect } from "react";
 import { CheckCircle, AlertCircle, Search, Bell, User, Moon, Sun, Calendar, Clock, ChevronDown, Filter, ArrowRight, Bookmark, BookOpen, Code, Monitor, Shield, Database, Trophy, Award, Target, Zap, BarChart as BarChartIcon } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar } from "recharts";
 import DashboardLayout from "@/components/dashboard-layout";
+import StatusBadge from "./_components/StatusBadge";
 
 // Types
 interface Assessment {
   id: number;
   title: string;
   dueDate: string;
-  status: "Upcoming" | "Completed" | "Missed";
+  status: "Upcoming" | "Submitted" | "Missed";
   timeLimit: number | null;
   questions: number | null;
   subject: string;
-  completion: number;
   type: string;
-  icon: React.ReactElement;
+  icon: React.ReactElement<{ className?: string; color?: string }>;
   score?: number;
   color: string;
   difficulty?: "Easy" | "Medium" | "Hard";
+  submissionDate?: string;
+  totalMarks: number;
+  passingMarks: number;
 }
 
 interface CompletionStat {
@@ -49,11 +52,12 @@ const mockAssessments: Assessment[] = [
     timeLimit: 120,
     questions: 45,
     subject: "Computer Science",
-    completion: 0,
     type: "Exam",
     icon: <Code className='h-10 w-10' />,
     color: "#8B5CF6", // Vibrant purple
     difficulty: "Hard",
+    totalMarks: 100,
+    passingMarks: 40,
   },
   {
     id: 2,
@@ -63,11 +67,12 @@ const mockAssessments: Assessment[] = [
     timeLimit: 30,
     questions: 15,
     subject: "Web Development",
-    completion: 0,
     type: "Quiz",
     icon: <Monitor className='h-10 w-10' />,
     color: "#3B82F6", // Bright blue
     difficulty: "Medium",
+    totalMarks: 50,
+    passingMarks: 25,
   },
   {
     id: 3,
@@ -77,41 +82,46 @@ const mockAssessments: Assessment[] = [
     timeLimit: null,
     questions: null,
     subject: "AI & Machine Learning",
-    completion: 25,
     type: "Project",
     icon: <BookOpen className='h-10 w-10' />,
     color: "#EC4899", // Vibrant pink
     difficulty: "Hard",
+    totalMarks: 100,
+    passingMarks: 50,
   },
   {
     id: 4,
     title: "Lab Assessment: Database Design",
     dueDate: "2025-05-08T10:00:00",
-    status: "Completed" as const,
+    status: "Submitted" as const,
     timeLimit: 90,
     questions: 20,
     subject: "Database Systems",
-    completion: 100,
-    score: 89,
     type: "Lab",
     icon: <Database className='h-10 w-10' />,
     color: "#10B981", // Emerald green
     difficulty: "Medium",
+    score: 89,
+    submissionDate: "2025-05-08T09:45:00",
+    totalMarks: 100,
+    passingMarks: 40,
   },
   {
     id: 5,
     title: "Peer Review: UI/UX Project",
     dueDate: "2025-05-05T23:59:00",
-    status: "Completed" as const,
+    status: "Submitted" as const,
     timeLimit: null,
     questions: 5,
     subject: "UI/UX Design",
-    completion: 100,
-    score: 95,
     type: "Review",
     icon: <Bookmark className='h-10 w-10' />,
     color: "#F59E0B", // Amber
     difficulty: "Easy",
+    score: 95,
+    submissionDate: "2025-05-05T23:30:00",
+    totalMarks: 100,
+    passingMarks: 50,
   },
   {
     id: 6,
@@ -121,17 +131,18 @@ const mockAssessments: Assessment[] = [
     timeLimit: 20,
     questions: 10,
     subject: "Cybersecurity",
-    completion: 0,
     type: "Quiz",
     icon: <Shield className='h-10 w-10' />,
     color: "#EF4444", // Red
     difficulty: "Medium",
+    totalMarks: 50,
+    passingMarks: 25,
   },
 ];
 
 // Enhanced mock data for statistics
 const completionStats = [
-  { name: "Completed", value: 2, color: "#10B981" }, // emerald
+  { name: "Submitted", value: 2, color: "#10B981" }, // emerald
   { name: "Upcoming", value: 3, color: "#3B82F6" }, // blue
   { name: "Missed", value: 1, color: "#EF4444" }, // red
 ];
@@ -155,19 +166,19 @@ const monthlyProgress = [
 // Enhanced color schemes
 const STATUS_COLORS = {
   Upcoming: "bg-gradient-to-r from-blue-500 to-indigo-600",
-  Completed: "bg-gradient-to-r from-emerald-500 to-teal-600",
+  Submitted: "bg-gradient-to-r from-emerald-500 to-teal-600",
   Missed: "bg-gradient-to-r from-rose-500 to-pink-600",
 };
 
 const STATUS_TEXT_COLORS = {
   Upcoming: "text-blue-500 dark:text-blue-400",
-  Completed: "text-emerald-500 dark:text-emerald-400",
+  Submitted: "text-emerald-500 dark:text-emerald-400",
   Missed: "text-rose-500 dark:text-rose-400",
 };
 
 const STATUS_BORDER_COLORS = {
   Upcoming: "border-blue-500 dark:border-blue-600",
-  Completed: "border-emerald-500 dark:border-emerald-600",
+  Submitted: "border-emerald-500 dark:border-emerald-600",
   Missed: "border-rose-500 dark:border-rose-600",
 };
 
@@ -270,7 +281,7 @@ export default function AssessmentsDashboard() {
                   <Trophy className='h-6 w-6' />
                 </div>
                 <div className='ml-5'>
-                  <h3 className='text-sm font-medium text-gray-500 dark:text-gray-400'>Completion Rate</h3>
+                  <h3 className='text-sm font-medium text-gray-500 dark:text-gray-400'>Submission Rate</h3>
                   <div className='flex items-baseline'>
                     <p className='text-2xl font-semibold text-gray-900 dark:text-white'>78%</p>
                     <p className='ml-2 text-sm font-medium text-emerald-600 dark:text-emerald-400'>+12%</p>
@@ -288,7 +299,7 @@ export default function AssessmentsDashboard() {
                   <AlertCircle className='h-6 w-6' />
                 </div>
                 <div className='ml-5'>
-                  <h3 className='text-sm font-medium text-gray-500 dark:text-gray-400'>Upcoming Assessments</h3>
+                  <h3 className='text-sm font-medium text-gray-500 dark:text-gray-400'>Upcoming Tests</h3>
                   <div className='flex items-baseline'>
                     <p className='text-2xl font-semibold text-gray-900 dark:text-white'>3</p>
                     <p className='ml-2 text-sm font-medium text-amber-600 dark:text-amber-400'>Next in 2 days</p>
@@ -485,70 +496,62 @@ export default function AssessmentsDashboard() {
           ) : filteredAssessments.length > 0 ? (
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
               {filteredAssessments.map((assessment) => (
-                <div key={assessment.id} className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border-l-4 ${STATUS_BORDER_COLORS[assessment.status]} transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group`}>
-                  <div className='relative'>
-                    <div className='absolute top-0 right-0 m-4'>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_TEXT_COLORS[assessment.status]} bg-opacity-10`}>
-                        {assessment.status === "Upcoming" && <Clock className='mr-1 h-3 w-3' />}
-                        {assessment.status === "Completed" && <CheckCircle className='mr-1 h-3 w-3' />}
-                        {assessment.status === "Missed" && <AlertCircle className='mr-1 h-3 w-3' />}
-                        {assessment.status}
-                      </span>
-                    </div>
+                <div key={assessment.id} className='relative group rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-sm hover:shadow-xl transform transition-transform duration-300 hover:scale-[1.02] flex flex-col'>
+                  {/* Status Badge */}
+                  <StatusBadge assessment={assessment} />
 
-                    {/* {assessment.difficulty && (
-                      <div className='absolute top-0 left-0 m-4'>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${DIFFICULTY_COLORS[assessment.difficulty]}`}>{assessment.difficulty}</span>
+                  {/* Main Content */}
+                  <div className='flex-grow'>
+                    {/* Icon + Title */}
+                    <div className='flex items-center gap-4 mb-5'>
+                      <div className='p-3 rounded-lg' style={{ backgroundColor: `${assessment.color}20` }}>
+                        {React.cloneElement(assessment.icon, { color: assessment.color, className: "w-6 h-6" })}
                       </div>
-                    )} */}
-                  </div>
-
-                  <div className='p-6'>
-                    <div className='flex items-center mb-4'>
-                      <div className='rounded-lg p-2' style={{ backgroundColor: `${assessment.color}20` }}>
-                        {/* @ts-ignore */}
-                        {React.cloneElement(assessment.icon, { color: assessment.color })}
-                      </div>
-                      <div className='ml-4'>
-                        <h3 className='text-lg font-medium text-gray-900 dark:text-white line-clamp-1'>{assessment.title}</h3>
+                      <div>
+                        <h3 className='text-lg font-semibold text-gray-900 dark:text-white line-clamp-1'>{assessment.title}</h3>
                         <p className='text-sm text-gray-500 dark:text-gray-400'>{assessment.subject}</p>
                       </div>
                     </div>
 
-                    <div className='space-y-3 mb-4'>
+                    {/* Details */}
+                    <div className='space-y-3 text-sm text-gray-600 dark:text-gray-300'>
                       <div className='flex justify-between items-center'>
-                        <span className='text-sm text-gray-500 dark:text-gray-400 flex items-center'>
+                        <span className='flex items-center'>
                           <Calendar className='h-4 w-4 mr-1' />
                           {formatDate(assessment.dueDate)}
                         </span>
-                        {assessment.status === "Upcoming" && <span className='text-sm font-medium text-blue-600 dark:text-blue-400'>{calculateDaysLeft(assessment.dueDate)} days left</span>}
+                        {assessment.status === "Upcoming" && <span className='text-blue-600 dark:text-blue-400 font-semibold'>{calculateDaysLeft(assessment.dueDate)} days left</span>}
                       </div>
 
                       {assessment.timeLimit && (
-                        <div className='flex items-center text-sm text-gray-500 dark:text-gray-400'>
+                        <div className='flex items-center'>
                           <Clock className='h-4 w-4 mr-1' />
-                          Time limit: {assessment.timeLimit} minutes
+                          Time limit: {assessment.timeLimit} mins
                         </div>
                       )}
 
                       {assessment.questions && (
-                        <div className='flex items-center text-sm text-gray-500 dark:text-gray-400'>
+                        <div className='flex items-center'>
                           <Target className='h-4 w-4 mr-1' />
-                          {assessment.questions} questions
+                          {assessment.questions} Questions
                         </div>
                       )}
 
+                      <div className='flex items-center'>
+                        <Award className='h-4 w-4 mr-1' />
+                        Total Marks: {assessment.totalMarks} (Pass: {assessment.passingMarks})
+                      </div>
+
                       {assessment.score && (
-                        <div className='mt-2'>
-                          <div className='flex items-center justify-between mb-1'>
-                            <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>Score: {assessment.score}%</span>
+                        <div>
+                          <div className='flex justify-between mb-1'>
+                            <span className='font-medium'>Score: {assessment.score}%</span>
                           </div>
-                          <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2'>
+                          <div className='h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700'>
                             <div
                               className='h-2 rounded-full'
                               style={{
                                 width: `${assessment.score}%`,
-                                backgroundColor: assessment.color,
                                 backgroundImage: `linear-gradient(90deg, ${assessment.color}, ${assessment.color}cc)`,
                               }}
                             ></div>
@@ -556,46 +559,36 @@ export default function AssessmentsDashboard() {
                         </div>
                       )}
 
-                      {assessment.status === "Upcoming" && (
-                        <div className='mt-2'>
-                          <div className='flex items-center justify-between mb-1'>
-                            <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>Progress: {assessment.completion}%</span>
-                          </div>
-                          <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2'>
-                            <div
-                              className='h-2 rounded-full'
-                              style={{
-                                width: `${assessment.completion}%`,
-                                backgroundColor: assessment.color,
-                                backgroundImage: `linear-gradient(90deg, ${assessment.color}, ${assessment.color}cc)`,
-                              }}
-                            ></div>
-                          </div>
+                      {assessment.submissionDate && (
+                        <div className='flex items-center'>
+                          <CheckCircle className='h-4 w-4 mr-1' />
+                          Submitted: {formatDate(assessment.submissionDate)}
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    <div className='flex justify-between items-center pt-2'>
-                      <span className='text-sm font-medium px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300'>{assessment.type}</span>
-                      {assessment.status === "Upcoming" && (
-                        <button className='group-hover:bg-blue-600 bg-blue-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center transition-all duration-200 hover:shadow-lg'>
-                          Start
-                          <ArrowRight className='ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
-                        </button>
-                      )}
-                      {assessment.status === "Completed" && (
-                        <button className='bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center transition-all duration-200 hover:shadow-lg hover:bg-emerald-600'>
-                          Review
-                          <ArrowRight className='ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
-                        </button>
-                      )}
-                      {assessment.status === "Missed" && (
-                        <button className='bg-gray-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center transition-all duration-200 hover:shadow-lg hover:bg-gray-600'>
-                          View
-                          <ArrowRight className='ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
-                        </button>
-                      )}
-                    </div>
+                  {/* Footer */}
+                  <div className='mt-5 flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700'>
+                    <span className='text-xs font-medium px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'></span>
+
+                    {assessment.status === "Upcoming" && (
+                      <button className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center'>
+                        Start Test <ArrowRight className='ml-2 h-4 w-4' />
+                      </button>
+                    )}
+
+                    {assessment.status === "Submitted" && (
+                      <button className='bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center'>
+                        View Results <ArrowRight className='ml-2 h-4 w-4' />
+                      </button>
+                    )}
+
+                    {assessment.status === "Missed" && (
+                      <button className='bg-gray-500 hover:bg-gray-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center'>
+                        View Details <ArrowRight className='ml-2 h-4 w-4' />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Search, Code, Clock, BarChart, Tag, Award, Users, BookOpen, CheckCircle, AlertTriangle, ChevronRight, Star, Zap, TrendingUp, Activity, Filter, Coffee, Brain, Trophy, ArrowRight, Crown } from "lucide-react";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useRouter } from "next/navigation";
+
 interface TestCase {
   input: any;
   expected: any;
@@ -27,7 +28,204 @@ interface Problem {
   testCases: TestCase[];
 }
 
+interface LeaderboardUser {
+  rank: number;
+  name: string;
+  solved: number;
+  accuracy: number;
+  points: number;
+  streak: number;
+  avatar: string;
+  badgeColor: string;
+}
+
+interface UserRankData {
+  rank: number;
+  points: number;
+  totalParticipants: number;
+}
+
+type TimePeriod = "Weekly" | "Monthly" | "All Time";
+
+interface LeaderboardData {
+  [key: string]: LeaderboardUser[];
+}
+
+interface UserRankDataMap {
+  [key: string]: UserRankData;
+}
+
 export default function ProblemListingPage() {
+  // Add new state for time period
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("Weekly");
+  
+  // Sample leaderboard data for different time periods
+  const leaderboardData: LeaderboardData = {
+    Weekly: [
+      {
+        rank: 1,
+        name: "Alex Johnson",
+        solved: 45,
+        accuracy: 98.5,
+        points: 2500,
+        streak: 7,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+        badgeColor: "bg-gradient-to-br from-amber-300 to-yellow-500 dark:from-amber-400 dark:to-yellow-600",
+      },
+      {
+        rank: 2,
+        name: "Sarah Chen",
+        solved: 38,
+        accuracy: 97.8,
+        points: 2300,
+        streak: 7,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        badgeColor: "bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-400 dark:to-gray-500",
+      },
+      {
+        rank: 3,
+        name: "Michael Park",
+        solved: 35,
+        accuracy: 96.2,
+        points: 2100,
+        streak: 6,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
+        badgeColor: "bg-gradient-to-br from-amber-600 to-amber-700 dark:from-amber-500 dark:to-amber-600",
+      },
+      {
+        rank: 4,
+        name: "Emma Wilson",
+        solved: 32,
+        accuracy: 95.8,
+        points: 1900,
+        streak: 5,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
+        badgeColor: "",
+      },
+      {
+        rank: 5,
+        name: "David Kim",
+        solved: 30,
+        accuracy: 94.5,
+        points: 1800,
+        streak: 5,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+        badgeColor: "",
+      },
+    ],
+    Monthly: [
+      {
+        rank: 1,
+        name: "Sarah Chen",
+        solved: 145,
+        accuracy: 97.8,
+        points: 7800,
+        streak: 28,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        badgeColor: "bg-gradient-to-br from-amber-300 to-yellow-500 dark:from-amber-400 dark:to-yellow-600",
+      },
+      {
+        rank: 2,
+        name: "Alex Johnson",
+        solved: 138,
+        accuracy: 98.5,
+        points: 7500,
+        streak: 25,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+        badgeColor: "bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-400 dark:to-gray-500",
+      },
+      {
+        rank: 3,
+        name: "Michael Park",
+        solved: 130,
+        accuracy: 96.2,
+        points: 7200,
+        streak: 24,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
+        badgeColor: "bg-gradient-to-br from-amber-600 to-amber-700 dark:from-amber-500 dark:to-amber-600",
+      },
+      {
+        rank: 4,
+        name: "Emma Wilson",
+        solved: 125,
+        accuracy: 95.8,
+        points: 6800,
+        streak: 22,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
+        badgeColor: "",
+      },
+      {
+        rank: 5,
+        name: "David Kim",
+        solved: 120,
+        accuracy: 94.5,
+        points: 6500,
+        streak: 20,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+        badgeColor: "",
+      },
+    ],
+    "All Time": [
+      {
+        rank: 1,
+        name: "Alex Johnson",
+        solved: 245,
+        accuracy: 98.5,
+        points: 12500,
+        streak: 15,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+        badgeColor: "bg-gradient-to-br from-amber-300 to-yellow-500 dark:from-amber-400 dark:to-yellow-600",
+      },
+      {
+        rank: 2,
+        name: "Sarah Chen",
+        solved: 238,
+        accuracy: 97.8,
+        points: 11800,
+        streak: 12,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        badgeColor: "bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-400 dark:to-gray-500",
+      },
+      {
+        rank: 3,
+        name: "Michael Park",
+        solved: 230,
+        accuracy: 96.2,
+        points: 11200,
+        streak: 10,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
+        badgeColor: "bg-gradient-to-br from-amber-600 to-amber-700 dark:from-amber-500 dark:to-amber-600",
+      },
+      {
+        rank: 4,
+        name: "Emma Wilson",
+        solved: 225,
+        accuracy: 95.8,
+        points: 10800,
+        streak: 8,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
+        badgeColor: "",
+      },
+      {
+        rank: 5,
+        name: "David Kim",
+        solved: 220,
+        accuracy: 94.5,
+        points: 10500,
+        streak: 7,
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+        badgeColor: "",
+      },
+    ],
+  };
+
+  // User rank data for different time periods
+  const userRankData: UserRankDataMap = {
+    Weekly: { rank: 42, points: 1750, totalParticipants: 1234 },
+    Monthly: { rank: 38, points: 6750, totalParticipants: 1234 },
+    "All Time": { rank: 42, points: 8750, totalParticipants: 1234 },
+  };
+
   // Sample problem data
   const [problems, setProblems] = useState<Problem[]>([
     {
@@ -284,15 +482,70 @@ export default function ProblemListingPage() {
         {/* Leaderboard Section - Moved up */}
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4 relative z-10'>
           <div className='bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 mb-8 border border-gray-100 dark:border-gray-800'>
+            {/* User Rank Indicator */}
+            <div className='mb-8 p-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white relative overflow-hidden'>
+              <div className='absolute inset-0 bg-[url("data:image/svg+xml,%3Csvg%20width%3D%2730%27%20height%3D%2730%27%20viewBox%3D%270%200%2030%2030%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M15%200C6.716%200%200%206.716%200%2015c0%208.284%206.716%2015%2015%2015%208.284%200%2015-6.716%2015-15%200-8.284-6.716-15-15-15zm0%2030C6.716%2030%200%2023.284%200%2015%200%206.716%206.716%200%2015%200c8.284%200%2015%206.716%2015%2015%200%208.284-6.716%2015-15%2015z%27%20fill%3D%27%23ffffff%27%20fill-opacity%3D%270.05%27%20fill-rule%3D%27nonzero%27%2F%3E%3C%2Fsvg%3E")] opacity-20'></div>
+              <div className='relative z-10 flex items-center justify-between'>
+                <div className='flex items-center space-x-4'>
+                  <div className='bg-white/20 backdrop-blur-sm p-3 rounded-full'>
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=You" alt="Your Avatar" className='w-12 h-12 rounded-full border-2 border-white' />
+                  </div>
+                  <div>
+                    <h3 className='text-lg font-semibold'>Your Current Rank</h3>
+                    <div className='flex items-center space-x-2 mt-1'>
+                      <div className='bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium'>#{userRankData[timePeriod].rank}</div>
+                      <span className='text-sm text-white/80'>out of {userRankData[timePeriod].totalParticipants} participants</span>
+                    </div>
+                  </div>
+                </div>
+                <div className='flex items-center space-x-4'>
+                  <div className='text-right'>
+                    <div className='text-sm text-white/80'>Your Points</div>
+                    <div className='text-2xl font-bold'>{userRankData[timePeriod].points.toLocaleString()}</div>
+                  </div>
+                  <div className='h-12 w-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center'>
+                    <Trophy className='w-6 h-6 text-yellow-300' />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className='flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-4 md:space-y-0'>
               <h2 className='text-2xl font-bold text-gray-900 dark:text-white flex items-center'>
                 <Trophy className='w-7 h-7 mr-3 text-amber-500 dark:text-amber-400' />
                 Top Performers
               </h2>
               <div className='flex items-center space-x-3'>
-                <button className='px-5 py-2.5 text-sm font-medium text-white bg-violet-600 dark:bg-violet-500 rounded-lg hover:bg-violet-700 dark:hover:bg-violet-600 transition-all duration-200 shadow-sm hover:shadow'>Weekly</button>
-                <button className='px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200'>Monthly</button>
-                <button className='px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200'>All Time</button>
+                <button 
+                  onClick={() => setTimePeriod("Weekly")} 
+                  className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow ${
+                    timePeriod === "Weekly" 
+                      ? "text-white bg-violet-600 dark:bg-violet-500" 
+                      : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Weekly
+                </button>
+                <button 
+                  onClick={() => setTimePeriod("Monthly")} 
+                  className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow ${
+                    timePeriod === "Monthly" 
+                      ? "text-white bg-violet-600 dark:bg-violet-500" 
+                      : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button 
+                  onClick={() => setTimePeriod("All Time")} 
+                  className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow ${
+                    timePeriod === "All Time" 
+                      ? "text-white bg-violet-600 dark:bg-violet-500" 
+                      : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  All Time
+                </button>
               </div>
             </div>
 
@@ -309,58 +562,7 @@ export default function ProblemListingPage() {
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
-                  {[
-                    {
-                      rank: 1,
-                      name: "Alex Johnson",
-                      solved: 245,
-                      accuracy: 98.5,
-                      points: 12500,
-                      streak: 15,
-                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-                      badgeColor: "bg-gradient-to-br from-amber-300 to-yellow-500 dark:from-amber-400 dark:to-yellow-600",
-                    },
-                    {
-                      rank: 2,
-                      name: "Sarah Chen",
-                      solved: 238,
-                      accuracy: 97.8,
-                      points: 11800,
-                      streak: 12,
-                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-                      badgeColor: "bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-400 dark:to-gray-500",
-                    },
-                    {
-                      rank: 3,
-                      name: "Michael Park",
-                      solved: 230,
-                      accuracy: 96.2,
-                      points: 11200,
-                      streak: 10,
-                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
-                      badgeColor: "bg-gradient-to-br from-amber-600 to-amber-700 dark:from-amber-500 dark:to-amber-600",
-                    },
-                    {
-                      rank: 4,
-                      name: "Emma Wilson",
-                      solved: 225,
-                      accuracy: 95.8,
-                      points: 10800,
-                      streak: 8,
-                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
-                      badgeColor: "",
-                    },
-                    {
-                      rank: 5,
-                      name: "David Kim",
-                      solved: 220,
-                      accuracy: 94.5,
-                      points: 10500,
-                      streak: 7,
-                      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
-                      badgeColor: "",
-                    },
-                  ].map((user) => (
+                  {leaderboardData[timePeriod].map((user) => (
                     <tr key={user.rank} className='hover:bg-gray-50/70 dark:hover:bg-gray-800/60 transition-colors'>
                       <td className='px-6 py-4'>
                         <div className='flex items-center'>{user.rank <= 3 ? <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${user.badgeColor} text-white`}>{user.rank === 1 ? <Crown className='w-5 h-5' /> : <span className='font-bold'>{user.rank}</span>}</div> : <div className='w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold'>{user.rank}</div>}</div>
@@ -406,6 +608,18 @@ export default function ProblemListingPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* View Full Leaderboard Button */}
+            <div className='mt-8 flex justify-center'>
+              <button className='group inline-flex items-center px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5'
+              onClick={()=>{
+                router.push("/dashboard/student/coding/leaderboard");
+              }}>
+                <Trophy className='w-6 h-6 mr-3 text-yellow-300 group-hover:scale-110 transition-transform' />
+                <span className='text-lg'>View Full Leaderboard</span>
+                <ChevronRight className='ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform' />
+              </button>
             </div>
           </div>
         </div>
