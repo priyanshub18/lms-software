@@ -58,7 +58,7 @@ interface UserRankDataMap {
 export default function ProblemListingPage() {
   // Add new state for time period
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("Weekly");
-  
+
   // Sample leaderboard data for different time periods
   const leaderboardData: LeaderboardData = {
     Weekly: [
@@ -488,7 +488,7 @@ export default function ProblemListingPage() {
               <div className='relative z-10 flex items-center justify-between'>
                 <div className='flex items-center space-x-4'>
                   <div className='bg-white/20 backdrop-blur-sm p-3 rounded-full'>
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=You" alt="Your Avatar" className='w-12 h-12 rounded-full border-2 border-white' />
+                    <img src='https://api.dicebear.com/7.x/avataaars/svg?seed=You' alt='Your Avatar' className='w-12 h-12 rounded-full border-2 border-white' />
                   </div>
                   <div>
                     <h3 className='text-lg font-semibold'>Your Current Rank</h3>
@@ -515,7 +515,7 @@ export default function ProblemListingPage() {
                 <Trophy className='w-7 h-7 mr-3 text-amber-500 dark:text-amber-400' />
                 Top Performers
               </h2>
-              <div className='flex items-center space-x-3'>
+              {/* <div className='flex items-center space-x-3'>
                 <button 
                   onClick={() => setTimePeriod("Weekly")} 
                   className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow ${
@@ -546,7 +546,7 @@ export default function ProblemListingPage() {
                 >
                   All Time
                 </button>
-              </div>
+              </div> */}
             </div>
 
             <div className='overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm'>
@@ -612,10 +612,12 @@ export default function ProblemListingPage() {
 
             {/* View Full Leaderboard Button */}
             <div className='mt-8 flex justify-center'>
-              <button className='group inline-flex items-center px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5'
-              onClick={()=>{
-                router.push("/dashboard/student/coding/leaderboard");
-              }}>
+              <button
+                className='group inline-flex items-center px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5'
+                onClick={() => {
+                  router.push("/dashboard/student/coding/leaderboard");
+                }}
+              >
                 <Trophy className='w-6 h-6 mr-3 text-yellow-300 group-hover:scale-110 transition-transform' />
                 <span className='text-lg'>View Full Leaderboard</span>
                 <ChevronRight className='ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform' />
@@ -864,85 +866,6 @@ export default function ProblemListingPage() {
           </div> */}
 
           {/* Featured Section */}
-          {showFeatured && featuredProblems.length > 0 && (
-            <div className='mb-12'>
-              <div className='flex items-center justify-between mb-6'>
-                <h2 className='text-2xl font-bold text-gray-900 dark:text-white flex items-center'>
-                  <Zap className='w-6 h-6 mr-2 text-yellow-500' />
-                  Featured Challenges
-                </h2>
-                <button onClick={() => setShowFeatured(false)} className='px-3 py-1 text-sm text-indigo-600 bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/30 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-all'>
-                  Hide Featured
-                </button>
-              </div>
-
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                {featuredProblems.map((problem) => (
-                  <div key={`featured-${problem.id}`} className='relative bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/40 dark:to-purple-900/40 rounded-xl overflow-hidden shadow-lg border border-indigo-200 dark:border-indigo-800/50 p-6 transform transition-all hover:shadow-2xl'>
-                    {problem.popular && (
-                      <div className='absolute top-4 right-4 flex items-center space-x-1 text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full'>
-                        <Star className='w-4 h-4 fill-current' />
-                        <span className='text-xs font-medium'>Popular</span>
-                      </div>
-                    )}
-                    {problem.trending && (
-                      <div className='absolute top-4 right-4 flex items-center space-x-1 text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/30 px-3 py-1 rounded-full'>
-                        <TrendingUp className='w-4 h-4' />
-                        <span className='text-xs font-medium'>Trending</span>
-                      </div>
-                    )}
-
-                    <div className='mb-4'>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
-                        {getDifficultyIcon(problem.difficulty)}
-                        {problem.difficulty}
-                      </span>
-                    </div>
-
-                    <h3 className='text-xl font-bold text-gray-900 dark:text-white mb-2'>{problem.title}</h3>
-
-                    <p className='text-gray-600 dark:text-gray-300 mb-4'>{problem.description}</p>
-
-                    <div className='flex flex-wrap gap-2 mb-4'>
-                      {problem.topics.map((topic, idx) => (
-                        <span key={idx} className='inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300'>
-                          <Tag className='w-3 h-3 mr-1' />
-                          {topic}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className='flex flex-wrap items-center justify-between mt-2'>
-                      <div className='flex items-center space-x-4'>
-                        <div className='flex items-center'>
-                          <Users className='w-4 h-4 mr-1 text-indigo-600 dark:text-indigo-400' />
-                          <span className='text-sm text-gray-700 dark:text-gray-300'>{formatNumber(problem.solved)}</span>
-                        </div>
-                        <div className='flex items-center'>
-                          <Star className='w-4 h-4 mr-1 text-yellow-500' />
-                          <span className='text-sm text-gray-700 dark:text-gray-300'>{problem.rating}</span>
-                        </div>
-                        <div className='flex items-center'>
-                          <BarChart className='w-4 h-4 mr-1 text-indigo-600 dark:text-indigo-400' />
-                          <span className='text-sm text-gray-700 dark:text-gray-300'>{problem.acceptance}%</span>
-                        </div>
-                      </div>
-
-                      <button
-                        className='mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors'
-                        onClick={() => {
-                          router.push(`/dashboard/student/coding/${problem.id}`);
-                        }}
-                      >
-                        Solve Challenge
-                        <ChevronRight className='ml-1 w-4 h-4' />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Problem Cards with Results Header */}
           <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8'>
@@ -1063,8 +986,85 @@ export default function ProblemListingPage() {
           </div>
 
           {/* Learning Resources Section */}
+          {showFeatured && featuredProblems.length > 0 && (
+            <div className='mb-12'>
+              <div className='flex items-center justify-between mb-6'>
+                <h2 className='text-2xl font-bold text-gray-900 dark:text-white flex items-center'>
+                  <Zap className='w-6 h-6 mr-2 text-yellow-500' />
+                  Featured Challenges
+                </h2>
+                <button onClick={() => setShowFeatured(false)} className='px-3 py-1 text-sm text-indigo-600 bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/30 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-all'>
+                  Hide Featured
+                </button>
+              </div>
 
-          {/* Leaderboard Section */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                {featuredProblems.map((problem) => (
+                  <div key={`featured-${problem.id}`} className='relative bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/40 dark:to-purple-900/40 rounded-xl overflow-hidden shadow-lg border border-indigo-200 dark:border-indigo-800/50 p-6 transform transition-all hover:shadow-2xl'>
+                    {problem.popular && (
+                      <div className='absolute top-4 right-4 flex items-center space-x-1 text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full'>
+                        <Star className='w-4 h-4 fill-current' />
+                        <span className='text-xs font-medium'>Popular</span>
+                      </div>
+                    )}
+                    {problem.trending && (
+                      <div className='absolute top-4 right-4 flex items-center space-x-1 text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/30 px-3 py-1 rounded-full'>
+                        <TrendingUp className='w-4 h-4' />
+                        <span className='text-xs font-medium'>Trending</span>
+                      </div>
+                    )}
+
+                    <div className='mb-4'>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
+                        {getDifficultyIcon(problem.difficulty)}
+                        {problem.difficulty}
+                      </span>
+                    </div>
+
+                    <h3 className='text-xl font-bold text-gray-900 dark:text-white mb-2'>{problem.title}</h3>
+
+                    <p className='text-gray-600 dark:text-gray-300 mb-4'>{problem.description}</p>
+
+                    <div className='flex flex-wrap gap-2 mb-4'>
+                      {problem.topics.map((topic, idx) => (
+                        <span key={idx} className='inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300'>
+                          <Tag className='w-3 h-3 mr-1' />
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className='flex flex-wrap items-center justify-between mt-2'>
+                      <div className='flex items-center space-x-4'>
+                        <div className='flex items-center'>
+                          <Users className='w-4 h-4 mr-1 text-indigo-600 dark:text-indigo-400' />
+                          <span className='text-sm text-gray-700 dark:text-gray-300'>{formatNumber(problem.solved)}</span>
+                        </div>
+                        <div className='flex items-center'>
+                          <Star className='w-4 h-4 mr-1 text-yellow-500' />
+                          <span className='text-sm text-gray-700 dark:text-gray-300'>{problem.rating}</span>
+                        </div>
+                        <div className='flex items-center'>
+                          <BarChart className='w-4 h-4 mr-1 text-indigo-600 dark:text-indigo-400' />
+                          <span className='text-sm text-gray-700 dark:text-gray-300'>{problem.acceptance}%</span>
+                        </div>
+                      </div>
+
+                      <button
+                        className='mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors'
+                        onClick={() => {
+                          router.push(`/dashboard/student/coding/${problem.id}`);
+                        }}
+                      >
+                        Solve Challenge
+                        <ChevronRight className='ml-1 w-4 h-4' />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8'>
             <h2 className='text-2xl font-bold text-gray-900 dark:text-white mb-6'>Learning Resources</h2>
@@ -1118,7 +1118,7 @@ export default function ProblemListingPage() {
               </div>
 
               <div className='flex space-x-4'>
-                <button className='px-6 py-3 bg-white text-indigo-600 font-medium rounded-lg shadow-md hover:bg-indigo-50 transition-colors'>Sign Up Free</button>
+                <button className='px-6 py-3 bg-white text-indigo-600 font-medium rounded-lg shadow-md hover:bg-indigo-50 transition-colors'>Buy Courses</button>
                 <button className='px-6 py-3 bg-indigo-800 text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition-colors'>Explore More</button>
               </div>
             </div>

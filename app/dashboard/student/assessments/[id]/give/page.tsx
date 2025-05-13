@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Clock, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Flag, Eye, EyeOff, Save, CheckSquare, ArrowLeft, ArrowRight, AlertTriangle, Maximize, Minimize, Menu, X, Camera, Video, Info, Layout, Grid, Moon, Sun } from "lucide-react";
+import EnhancedWelcomeScreen from "../../_components/WelcomeScreen";
 
 // Type definitions
 interface Section {
@@ -337,13 +338,141 @@ export default function EnhancedAssessmentUI() {
         console.log(`Error attempting to enable full-screen mode: ${err.message}`);
       });
       setIsFullScreen(true);
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-        setIsFullScreen(false);
-      }
     }
   };
+
+  // Handle fullscreen change
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && !assessmentSubmitted) {
+        // Show warning modal
+        const warningModal = document.createElement("div");
+        warningModal.className = "fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm";
+
+        // Create container for the modal content
+        const modalContent = document.createElement("div");
+        modalContent.className = `max-w-lg w-full mx-4 p-6 rounded-2xl shadow-2xl ${darkMode ? "bg-gray-800" : "bg-white"} transform transition-all`;
+
+        // Add header content
+        const headerContent = document.createElement("div");
+        headerContent.className = "flex flex-col items-center mb-6";
+        headerContent.innerHTML = `
+          <div class="w-14 h-14 rounded-full ${darkMode ? "bg-red-900" : "bg-red-100"} flex items-center justify-center mb-4">
+            <svg class="w-7 h-7 ${darkMode ? "text-red-400" : "text-red-600"}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold mb-2 ${darkMode ? "text-white" : "text-gray-900"}">Fullscreen Mode Required</h2>
+          <p class="text-center ${darkMode ? "text-gray-300" : "text-gray-600"} text-sm">
+            This assessment must be taken in fullscreen mode to ensure academic integrity.
+          </p>
+        `;
+
+        // Create timer container
+        const timerContainer = document.createElement("div");
+        timerContainer.className = `flex items-center justify-center mb-4 ${darkMode ? "text-white" : "text-gray-900"}`;
+        timerContainer.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center w-12 h-12 rounded-full ${darkMode ? "bg-gray-700" : "bg-gray-100"} border-2 ${darkMode ? "border-red-500" : "border-red-500"}">
+              <span id="countdown-timer" class="text-2xl font-bold ${darkMode ? "text-red-400" : "text-red-600"}">10</span>
+            </div>
+            <span class="text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}">seconds remaining</span>
+          </div>
+        `;
+
+        // Create buttons
+        const buttonsContainer = document.createElement("div");
+        buttonsContainer.className = "flex gap-3";
+        buttonsContainer.innerHTML = `
+          <button id="returnToFullscreen" 
+            class="flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 
+            ${darkMode ? "bg-blue-600 hover:bg-blue-500" : "bg-blue-500 hover:bg-blue-600"} text-white
+            transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl whitespace-nowrap">
+            <div class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+              </svg>
+              Return to Fullscreen
+            </div>
+          </button>
+        `;
+
+        // Assemble the modal
+        modalContent.appendChild(headerContent);
+        modalContent.appendChild(timerContainer);
+        modalContent.appendChild(buttonsContainer);
+        warningModal.appendChild(modalContent);
+        document.body.appendChild(warningModal);
+
+        // Add pulse animation to the timer
+        const timerElement = warningModal.querySelector("#countdown-timer") as HTMLElement;
+        if (timerElement) {
+          timerElement.style.animation = "pulse 1s infinite";
+        }
+
+        // Add keyframes for pulse animation
+        const style = document.createElement("style");
+        style.textContent = `
+          @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+          }
+          @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+          }
+        `;
+        document.head.appendChild(style);
+
+        // Add event listener to button
+        const returnButton = warningModal.querySelector("#returnToFullscreen") as HTMLButtonElement;
+        returnButton?.addEventListener("click", () => {
+          document.documentElement.requestFullscreen();
+          warningModal.remove();
+          style.remove();
+        });
+
+        // Real countdown timer implementation
+        let secondsLeft = 10;
+        const countdownInterval = setInterval(() => {
+          secondsLeft--;
+
+          if (timerElement) {
+            timerElement.textContent = secondsLeft.toString();
+
+            // Add visual effects when time is running low
+            if (secondsLeft <= 3) {
+              timerElement.classList.add(darkMode ? "text-red-500" : "text-red-700");
+              timerElement.style.animation = "pulse 0.5s infinite, shake 0.5s infinite";
+            }
+          }
+
+          if (secondsLeft <= 0) {
+            clearInterval(countdownInterval);
+            handleSubmitAssessment();
+            warningModal.remove();
+            style.remove();
+          }
+        }, 1000);
+
+        // Cleanup
+        return () => {
+          clearInterval(countdownInterval);
+          warningModal.remove();
+          style.remove();
+        };
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [assessmentSubmitted, darkMode]);
 
   // Handle start assessment
   const startAssessment = () => {
@@ -456,6 +585,13 @@ export default function EnhancedAssessmentUI() {
     if (confirmSubmit) {
       setAssessmentSubmitted(true);
       setIsTimerRunning(false);
+      setConfirmSubmit(false); // Close the confirmation modal
+      // Exit fullscreen if in fullscreen mode
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch((err) => {
+          console.log(`Error exiting fullscreen: ${err.message}`);
+        });
+      }
     } else {
       setConfirmSubmit(true);
     }
@@ -463,6 +599,7 @@ export default function EnhancedAssessmentUI() {
 
   // Cancel submission
   const cancelSubmit = () => {
+    toggleFullScreen();
     setConfirmSubmit(false);
   };
 
@@ -525,15 +662,7 @@ export default function EnhancedAssessmentUI() {
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
               {sectionQuestions.map((question: any) => {
                 const globalIndex = getGlobalIndex(question.id);
-                const isAnswered = question.type === "singleChoice" || question.type === "trueFalse" 
-                  ? question.userAnswer !== null 
-                  : question.type === "multipleChoice" 
-                    ? Array.isArray(question.userAnswer) && question.userAnswer.length > 0 
-                    : question.type === "fillBlank" || question.type === "shortAnswer" || question.type === "coding" 
-                      ? typeof question.userAnswer === "string" && question.userAnswer.trim() !== "" 
-                      : question.type === "matching" 
-                        ? typeof question.userAnswer === "object" && Object.keys(question.userAnswer).length === question.pairs?.length 
-                        : false;
+                const isAnswered = question.type === "singleChoice" || question.type === "trueFalse" ? question.userAnswer !== null : question.type === "multipleChoice" ? Array.isArray(question.userAnswer) && question.userAnswer.length > 0 : question.type === "fillBlank" || question.type === "shortAnswer" || question.type === "coding" ? typeof question.userAnswer === "string" && question.userAnswer.trim() !== "" : question.type === "matching" ? typeof question.userAnswer === "object" && Object.keys(question.userAnswer).length === question.pairs?.length : false;
 
                 return (
                   <button
@@ -991,30 +1120,45 @@ export default function EnhancedAssessmentUI() {
 
   // Render confirm submit modal
   const renderConfirmSubmitModal = () => {
+    if (!confirmSubmit) return null;
+
     return (
-      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+      <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm'>
         <div
-          className={`max-w-md w-full p-6 rounded-lg shadow-lg
-    ${darkMode ? "bg-gray-800" : "bg-white"}
-  `}
+          className={`max-w-lg w-full mx-4 p-6 rounded-2xl shadow-2xl transform transition-all
+          ${darkMode ? "bg-gray-800" : "bg-white"}
+        `}
         >
           <div className='flex flex-col items-center mb-6'>
-            <AlertCircle className='w-12 h-12 text-yellow-500 mb-4' />
-            <h2 className='text-xl font-bold mb-2'>Submit Assessment?</h2>
-            <p className='text-center text-gray-500 dark:text-gray-400'>Are you sure you want to submit your assessment? You cannot change your answers after submission.</p>
+            <div className={`w-14 h-14 rounded-full ${darkMode ? "bg-blue-900" : "bg-blue-100"} flex items-center justify-center mb-4`}>
+              <AlertCircle className={`w-7 h-7 ${darkMode ? "text-blue-400" : "text-blue-600"}`} />
+            </div>
+            <h2 className='text-xl font-bold mb-2 text-center'>Submit Assessment?</h2>
+            <p className='text-center text-gray-500 dark:text-gray-400 text-sm'>Are you sure you want to submit your assessment? This action cannot be undone.</p>
           </div>
 
-          <div className='grid grid-cols-2 gap-4 mt-6'>
+          <div className='flex gap-3'>
             <button
-              className={`py-3 rounded-lg font-medium
-          ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}
-        `}
+              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 
+              ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}
+              transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl whitespace-nowrap`}
               onClick={cancelSubmit}
             >
-              Continue Working
+              <div className='flex items-center justify-center gap-2'>
+                <X className='w-5 h-5' />
+                Cancel
+              </div>
             </button>
-            <button className='py-3 rounded-lg font-medium bg-blue-500 hover:bg-blue-600 text-white' onClick={handleSubmitAssessment}>
-              Submit Assessment
+            <button
+              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 
+              ${darkMode ? "bg-blue-600 hover:bg-blue-500" : "bg-blue-500 hover:bg-blue-600"} text-white
+              transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl whitespace-nowrap`}
+              onClick={handleSubmitAssessment}
+            >
+              <div className='flex items-center justify-center gap-2'>
+                <CheckCircle className='w-5 h-5' />
+                Submit Assessment
+              </div>
             </button>
           </div>
         </div>
@@ -1069,64 +1213,81 @@ export default function EnhancedAssessmentUI() {
   };
 
   // Render welcome screen
+  // Render welcome screen
   const renderWelcomeScreen = () => {
     return (
-      <div
-        className={`fixed inset-0 flex items-center justify-center
-  ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100"}
-`}
-      >
-        <div
-          className={`max-w-3xl w-full mx-auto p-8 rounded-lg shadow-lg
-    ${darkMode ? "bg-gray-800" : "bg-white"}
-  `}
-        >
+      <div className={`fixed inset-0 flex items-center justify-center ${darkMode ? "bg-gradient-to-b from-gray-900 to-gray-800 text-white" : "bg-gradient-to-b from-gray-100 to-white"}`}>
+        <div className={`max-w-3xl w-full mx-auto p-8 rounded-lg shadow-xl border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
           <div className='text-center mb-8'>
-            <h1 className='text-3xl font-bold mb-2'>Programming Skills Assessment</h1>
-            <p className='text-gray-500 dark:text-gray-400'>Welcome to your programming assessment. Please read the instructions carefully before beginning.</p>
+            <h1 className={`text-3xl font-bold mb-3 ${darkMode ? "text-blue-300" : "text-blue-600"}`}>Programming Skills Assessment</h1>
+            <p className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}>Welcome to your programming assessment. Please read the instructions carefully before beginning.</p>
           </div>
 
           {showInstructions && (
-            <div
-              className={`p-6 rounded-lg mb-8
-        ${darkMode ? "bg-gray-700" : "bg-gray-50"}
-      `}
-            >
-              <h2 className='text-xl font-bold mb-4'>Instructions</h2>
+            <div className={`p-6 rounded-lg mb-8 border ${darkMode ? "bg-gray-700/70 border-gray-600" : "bg-blue-50 border-blue-100"}`}>
+              <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-blue-300" : "text-blue-600"}`}>Instructions</h2>
               <ul className='space-y-3 list-disc pl-6'>
-                <li>
-                  This assessment contains {questions.length} questions worth a total of {totalPoints} points.
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>
+                    This assessment contains <span className='font-medium'>{questions.length}</span> questions worth a total of <span className='font-medium'>{totalPoints}</span> points.
+                  </span>
                 </li>
-                <li>You have 60 minutes to complete the assessment.</li>
-                <li>Answer all questions to the best of your ability.</li>
-                <li>You can flag questions to review later.</li>
-                <li>For coding questions, make sure to test your solutions before submitting.</li>
-                <li>Once you submit the assessment, you cannot change your answers.</li>
-                <li>The assessment must be completed in one sitting.</li>
-                <li>The assessment will be submitted automatically when the time expires.</li>
-                <li>Identity verification is required before beginning.</li>
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>
+                    You have <span className='font-medium'>60 minutes</span> to complete the assessment.
+                  </span>
+                </li>
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>Answer all questions to the best of your ability.</span>
+                </li>
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>You can flag questions to review later.</span>
+                </li>
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>For coding questions, make sure to test your solutions before submitting.</span>
+                </li>
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>Once you submit the assessment, you cannot change your answers.</span>
+                </li>
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>The assessment must be completed in one sitting.</span>
+                </li>
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>The assessment will be submitted automatically when the time expires.</span>
+                </li>
+                <li className='flex items-start'>
+                  <span className='mr-2'>•</span>
+                  <span>Identity verification is required before beginning.</span>
+                </li>
               </ul>
             </div>
           )}
 
           <div className='flex flex-col space-y-4'>
             {!isIdentityVerified ? (
-              <button className='w-full py-3 rounded-lg font-medium bg-blue-500 hover:bg-blue-600 text-white' onClick={verifyIdentity}>
+              <button className='w-full py-3 rounded-lg font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md transform hover:translate-y-px' onClick={verifyIdentity}>
                 Verify Identity to Begin
               </button>
             ) : (
-              <button className='w-full py-3 rounded-lg font-medium bg-green-500 hover:bg-green-600 text-white' onClick={startAssessment}>
+              <button className='w-full py-3 rounded-lg font-medium bg-green-500 hover:bg-green-600 text-white transition-all duration-200 shadow-md transform hover:translate-y-px' onClick={startAssessment}>
                 Begin Assessment
               </button>
             )}
-            <button
-              className={`w-full py-3 rounded-lg font-medium
-          ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"}
-        `}
-              onClick={() => setShowInstructions(!showInstructions)}
-            >
+            <button className={`w-full py-3 rounded-lg font-medium transition-colors duration-200 ${darkMode ? "bg-gray-700 hover:bg-gray-600 text-gray-300" : "bg-gray-200 hover:bg-gray-300 text-gray-700"}`} onClick={() => setShowInstructions(!showInstructions)}>
               {showInstructions ? "Hide Instructions" : "Show Instructions"}
             </button>
+          </div>
+
+          <div className={`mt-6 pt-4 text-center text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            <p>Complete all questions to the best of your ability.</p>
           </div>
         </div>
       </div>
@@ -1236,15 +1397,7 @@ export default function EnhancedAssessmentUI() {
                           .filter((q) => q.sectionId === section.id)
                           .map((question) => {
                             const globalIndex = getGlobalIndex(question.id);
-                            const isAnswered = question.type === "singleChoice" || question.type === "trueFalse" 
-                              ? question.userAnswer !== null 
-                              : question.type === "multipleChoice" 
-                                ? Array.isArray(question.userAnswer) && question.userAnswer.length > 0 
-                                : question.type === "fillBlank" || question.type === "shortAnswer" || question.type === "coding" 
-                                  ? typeof question.userAnswer === "string" && question.userAnswer.trim() !== "" 
-                                  : question.type === "matching" 
-                                    ? typeof question.userAnswer === "object" && Object.keys(question.userAnswer).length === question.pairs?.length 
-                                    : false;
+                            const isAnswered = question.type === "singleChoice" || question.type === "trueFalse" ? question.userAnswer !== null : question.type === "multipleChoice" ? Array.isArray(question.userAnswer) && question.userAnswer.length > 0 : question.type === "fillBlank" || question.type === "shortAnswer" || question.type === "coding" ? typeof question.userAnswer === "string" && question.userAnswer.trim() !== "" : question.type === "matching" ? typeof question.userAnswer === "object" && Object.keys(question.userAnswer).length === question.pairs?.length : false;
 
                             return (
                               <button

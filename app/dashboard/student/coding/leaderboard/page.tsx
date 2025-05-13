@@ -7,13 +7,7 @@ import type { User, CurrentUser } from "./types";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type SortField = "rank" | "solved" | "accuracy" | "points" | "streak";
 
@@ -61,10 +55,7 @@ const LeaderboardPage = () => {
 
   // Filter and sort users
   const filteredUsers = users
-    .filter(user => 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.rank.toString().includes(searchQuery)
-    )
+    .filter((user) => user.name.toLowerCase().includes(searchQuery.toLowerCase()) || user.rank.toString().includes(searchQuery))
     .sort((a, b) => {
       switch (sortBy) {
         case "points":
@@ -99,7 +90,7 @@ const LeaderboardPage = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSortChange = (value: string) => {
@@ -107,8 +98,8 @@ const LeaderboardPage = () => {
   };
 
   return (
-    <DashboardLayout userRole="student">
-      <div className="min-h-screen -m-10 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+    <DashboardLayout userRole='student'>
+      <div className='min-h-screen -m-10 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4 relative z-10 bg-gray-50 dark:bg-gray-900 min-h-screen'>
           <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8 border border-gray-100 dark:border-gray-700'>
             {/* User Rank Indicator */}
@@ -167,14 +158,9 @@ const LeaderboardPage = () => {
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='relative'>
                   <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400' />
-                  <Input
-                    placeholder='Search users...'
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className='pl-10 w-[200px]'
-                  />
+                  <Input placeholder='Search users...' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className='pl-10 w-[200px]' />
                 </div>
-                <Select value={sortBy} onValueChange={handleSortChange}>
+                {/* <Select value={sortBy} onValueChange={handleSortChange}>
                   <SelectTrigger className='w-[180px]'>
                     <SelectValue placeholder='Sort by' />
                   </SelectTrigger>
@@ -185,8 +171,8 @@ const LeaderboardPage = () => {
                     <SelectItem value="points">Points</SelectItem>
                     <SelectItem value="streak">Streak</SelectItem>
                   </SelectContent>
-                </Select>
-                <div className='flex items-center space-x-3'>
+                </Select> */}
+                {/* <div className='flex items-center space-x-3'>
                   <button onClick={() => setTimeFrame("weekly")} className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow ${timeFrame === "weekly" ? "text-white bg-violet-600 dark:bg-violet-500 hover:bg-violet-700 dark:hover:bg-violet-600" : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
                     Weekly
                   </button>
@@ -196,7 +182,7 @@ const LeaderboardPage = () => {
                   <button onClick={() => setTimeFrame("allTime")} className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow ${timeFrame === "allTime" ? "text-white bg-violet-600 dark:bg-violet-500 hover:bg-violet-700 dark:hover:bg-violet-600" : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
                     All Time
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -211,7 +197,7 @@ const LeaderboardPage = () => {
                     <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Accuracy</th>
                     <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Points</th>
                     <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Streak</th>
-                    <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Details</th>
+                    {/* <th className='px-6 py-4 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left'>Details</th> */}
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
@@ -257,9 +243,9 @@ const LeaderboardPage = () => {
                           <span className='text-xs text-gray-500 dark:text-gray-400'>days</span>
                         </div>
                       </td>
-                      <td className='px-6 py-4'>
+                      {/* <td className='px-6 py-4'>
                         <button className='px-3 py-1 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors'>View Stats</button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>
@@ -272,36 +258,18 @@ const LeaderboardPage = () => {
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} results
               </div>
               <div className='flex items-center space-x-2'>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className='flex items-center'
-                >
+                <Button variant='outline' size='sm' onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className='flex items-center'>
                   <ChevronLeft className='h-4 w-4 mr-1' />
                   Previous
                 </Button>
                 <div className='flex items-center space-x-1'>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(page)}
-                      className='w-8 h-8 p-0'
-                    >
+                    <Button key={page} variant={currentPage === page ? "default" : "outline"} size='sm' onClick={() => handlePageChange(page)} className='w-8 h-8 p-0'>
                       {page}
                     </Button>
                   ))}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className='flex items-center'
-                >
+                <Button variant='outline' size='sm' onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className='flex items-center'>
                   Next
                   <ChevronRight className='h-4 w-4 ml-1' />
                 </Button>
@@ -462,7 +430,6 @@ const LeaderboardPage = () => {
                     <button className='px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>View Complete Profile</button>
                     <button className='px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors'>Challenge to Duel</button>
                   </div> */}
-                  
                 </div>
               </div>
             </div>
@@ -471,7 +438,6 @@ const LeaderboardPage = () => {
       </div>
     </DashboardLayout>
   );
-}
+};
 
 export default LeaderboardPage;
-
