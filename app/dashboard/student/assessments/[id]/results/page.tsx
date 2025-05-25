@@ -2,9 +2,84 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, XCircle, Code, Clock, Award, ChevronDown, ChevronUp, Trophy, Target, BookOpen, Brain, User, Clipboard, Sun, Moon, BarChart3, Star, CalendarDays, Book, CheckSquare, PenTool, Cpu, Medal, Share2, Download } from "lucide-react";
 import DashboardLayout from "@/components/dashboard-layout";
+import type { ReactElement } from "react";
+import ResultsNotLoaded from "./_components/ResultsNotLoaded";
+
+// Add type definitions
+type SectionType = "coding" | "multipleChoice" | "trueFalse" | "shortAnswer";
+
+interface ExpandedSections {
+  coding: boolean;
+  multipleChoice: boolean;
+  trueFalse: boolean;
+  shortAnswer: boolean;
+}
+
+interface Question {
+  id: number;
+  type: SectionType;
+  question: string;
+  userAnswer: string | boolean;
+  correctAnswer?: string | boolean;
+  correct: boolean;
+  points: number;
+  maxPoints: number;
+  timeSpent: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  tags: string[];
+  feedback?: string;
+  options?: string[];
+}
+
+interface Section {
+  id: SectionType;
+  title: string;
+  score: number;
+  maxScore: number;
+  icon: ReactElement;
+  description: string;
+  questions: Question[];
+}
+
+interface AssessmentData {
+  title: string;
+  subtitle: string;
+  date: string;
+  duration: string;
+  completionTime: string;
+  score: number;
+  maxScore: number;
+  percentile: number;
+  studentName: string;
+  studentId: string;
+  courseInstructor: string;
+  courseCode: string;
+  certificates: string[];
+  badgesEarned: string[];
+  previousScores: number[];
+  sections: Section[];
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+  nextLevelRequirements: string[];
+}
+
+interface TimeSpentByCategory {
+  [key: string]: number;
+}
+
+// Helper function moved outside component
+const getProgressColor = (score: number, maxScore: number) => {
+  const percentage = (score / maxScore) * 100;
+  if (percentage >= 90) return "bg-green-500";
+  if (percentage >= 75) return "bg-blue-500";
+  if (percentage >= 60) return "bg-yellow-500";
+  return "bg-red-500";
+};
 
 export default function AssessmentResults() {
-  const [expandedSections, setExpandedSections] = useState({
+  // All hooks at the top level
+  const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
     coding: true,
     multipleChoice: true,
     trueFalse: false,
@@ -12,21 +87,11 @@ export default function AssessmentResults() {
   });
 
   const [animateIn, setAnimateIn] = useState(false);
+  const [isResultReady, setIsResultReady] = useState(false);
+  const [activeTabId, setActiveTabId] = useState<SectionType>("coding");
 
-  useEffect(() => {
-    // Trigger animations after component mounts
-    setAnimateIn(true);
-  }, []);
-
-  const toggleSection = (section) => {
-    setExpandedSections({
-      ...expandedSections,
-      [section]: !expandedSections[section],
-    });
-  };
-
-  // Enhanced assessment data with additional fields
-  const assessmentData = {
+  // Mock assessment data - in a real app, this would come from an API
+  const assessmentData: AssessmentData = {
     title: "Advanced Web Development Assessment",
     subtitle: "Full Stack Development Certification Track",
     date: "May 12, 2025",
@@ -77,7 +142,6 @@ export default function AssessmentResults() {
             timeSpent: "14 minutes",
             difficulty: "Medium",
             tags: ["Algorithms", "Strings", "Optimization"],
-            feedback: "Excellent solution with optimal time complexity O(n).",
           },
           {
             id: 2,
@@ -118,13 +182,54 @@ function DataFetcher() {
     </div>
   );
 }`,
+            correctAnswer: `import { useState, useEffect } from 'react';
+
+function DataFetcher() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+    
+    fetch('https://api.example.com/data', { signal })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        if (error.name !== 'AbortError') {
+          setError(error.message);
+          setLoading(false);
+        }
+      });
+      
+    return () => controller.abort();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  
+  return (
+    <div>
+      <h2>Data from API</h2>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+}`,
             correct: true,
             points: 12,
             maxPoints: 15,
             timeSpent: "18 minutes",
             difficulty: "Medium",
             tags: ["React", "Hooks", "API Integration"],
-            feedback: "Good implementation. Consider adding error boundary and cleanup function.",
           },
           {
             id: 3,
@@ -137,13 +242,21 @@ WHERE orders.created_at > '2025-01-01'
 GROUP BY users.id
 HAVING COUNT(orders.id) > 5
 ORDER BY order_count DESC;`,
+            correctAnswer: `SELECT users.name, COUNT(orders.id) as order_count
+FROM users
+JOIN orders ON users.id = orders.user_id
+WHERE orders.created_at > '2025-01-01'
+GROUP BY users.id
+HAVING COUNT(orders.id) > 5
+ORDER BY order_count DESC
+/* Use indexes: */
+USE INDEX (idx_users_id, idx_orders_user_id, idx_orders_created_at);`,
             correct: true,
             points: 15,
             maxPoints: 20,
             timeSpent: "12 minutes",
             difficulty: "Hard",
             tags: ["SQL", "Database", "Optimization"],
-            feedback: "Good query, but missing index hint on created_at and user_id columns.",
           },
         ],
       },
@@ -273,7 +386,6 @@ ORDER BY order_count DESC;`,
             timeSpent: "40 seconds",
             difficulty: "Easy",
             tags: ["Databases", "SQL"],
-            feedback: "Partially correct, needs clarification on SQL vs NoSQL distinctions.",
           },
         ],
       },
@@ -290,26 +402,26 @@ ORDER BY order_count DESC;`,
             type: "shortAnswer",
             question: "Explain the concept of CSS specificity.",
             userAnswer: "CSS specificity is a weight that determines which style declarations apply to an element when multiple rules could apply. It's calculated based on the number of ID selectors, class selectors, and type selectors in a CSS rule. The higher the specificity value, the more precedence the rule has.",
+            correctAnswer: "CSS specificity is a weight or ranking system that determines which style declarations apply to an element when multiple conflicting rules could apply. The specificity value is calculated based on the number and types of selectors used: ID selectors (highest), class/attribute/pseudo-class selectors (middle), and element/pseudo-element selectors (lowest). The higher the specificity value, the more precedence the rule has when rendering styles. It follows a base-10 counting system (e.g., 1-0-0 for ID, 0-1-0 for class, 0-0-1 for element).",
             correct: true,
             points: 5,
             maxPoints: 5,
             timeSpent: "2 minutes 50 seconds",
             difficulty: "Medium",
             tags: ["CSS", "Web Design"],
-            feedback: "Excellent explanation covering the key concept and calculation method.",
           },
           {
             id: 13,
             type: "shortAnswer",
             question: "Describe the difference between useEffect and useLayoutEffect in React.",
             userAnswer: "useEffect runs asynchronously after the browser has painted, while useLayoutEffect runs synchronously before the browser paints. useLayoutEffect is useful for measuring DOM elements and updating the UI before the user sees it, preventing visual flickering.",
+            correctAnswer: "useEffect and useLayoutEffect are React hooks with different execution timing. useEffect runs asynchronously after the browser has painted the DOM changes, making it suitable for most side effects without blocking visual updates. useLayoutEffect runs synchronously before the browser paints the updates, which is useful when you need to make DOM measurements and apply visual updates that should happen before the user sees the rendered elements. This prevents visual flickering but can impact performance if complex calculations are performed, as it blocks painting until completion.",
             correct: true,
             points: 5,
             maxPoints: 5,
             timeSpent: "3 minutes 15 seconds",
             difficulty: "Hard",
             tags: ["React", "Hooks", "Rendering"],
-            feedback: "Precise explanation of the timing difference and use cases.",
           },
         ],
       },
@@ -318,6 +430,20 @@ ORDER BY order_count DESC;`,
     weaknesses: ["SQL optimization", "Advanced database concepts", "Performance tuning"],
     recommendations: ["Focus on SQL optimization techniques", "Review React component lifecycle methods", "Practice more complex coding problems", "Take the Advanced Database Design course"],
     nextLevelRequirements: ["Complete 3 more advanced projects", "Score 90+ on the Advanced Database assessment", "Submit the final certification project"],
+  };
+
+  useEffect(() => {
+    // Randomly decide if results are ready (for demo purposes)
+    const randomReady = Math.random() > 0.5;
+    setIsResultReady(randomReady);
+    setAnimateIn(true);
+  }, []);
+
+  const toggleSection = (section: SectionType) => {
+    setExpandedSections({
+      ...expandedSections,
+      [section]: !expandedSections[section],
+    });
   };
 
   // Calculate overall statistics
@@ -341,34 +467,56 @@ ORDER BY order_count DESC;`,
 
   // Time spent calculation
   let totalTimeSpent = 0;
-  let timeSpentByCategory = {};
+  let timeSpentByCategory: TimeSpentByCategory = {};
 
   assessmentData.sections.forEach((section) => {
     timeSpentByCategory[section.id] = 0;
     section.questions.forEach((q) => {
       if (q.timeSpent) {
-        const minutes = parseInt(q.timeSpent.split(" ")[0]);
-        if (!isNaN(minutes)) {
-          timeSpentByCategory[section.id] += minutes;
-          totalTimeSpent += minutes;
+        const timeStr = q.timeSpent.split(" ");
+        if (timeStr.length >= 2) {
+          const value = parseFloat(timeStr[0]);
+          const unit = timeStr[1];
+          if (!isNaN(value)) {
+            if (unit.startsWith("minute")) {
+              timeSpentByCategory[section.id] += value;
+              totalTimeSpent += value;
+            } else if (unit.startsWith("second")) {
+              timeSpentByCategory[section.id] += value / 60;
+              totalTimeSpent += value / 60;
+            }
+          }
         }
       }
     });
   });
 
-  const renderQuestionContent = (question) => {
+  const renderQuestionContent = (question: Question) => {
     switch (question.type) {
       case "coding":
         return (
           <div className='mb-6 last:mb-2'>
-            <div className='bg-white dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-lg border border-gray-200 dark:border-gray-700 mb-4'>
-              <div className='font-medium mb-3 text-lg text-gray-900 dark:text-white'>{question.question}</div>
+            <div className='bg-white dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-lg border-l-4 border-blue-500 shadow-md'>
+              <div className='flex justify-between items-start mb-4'>
+                <div className='font-medium text-lg text-gray-900 dark:text-white mb-2'>{question.question}</div>
+                <div className='flex items-center'>
+                  {question.correct ? (
+                    <span className='flex items-center text-green-600 dark:text-green-400 text-sm font-medium px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full'>
+                      <CheckCircle className='h-4 w-4 mr-1' /> Correct
+                    </span>
+                  ) : (
+                    <span className='flex items-center text-red-600 dark:text-red-400 text-sm font-medium px-3 py-1 bg-red-100 dark:bg-red-900/30 rounded-full'>
+                      <XCircle className='h-4 w-4 mr-1' /> Incorrect
+                    </span>
+                  )}
+                </div>
+              </div>
 
               {/* Tags */}
               {question.tags && (
                 <div className='flex flex-wrap gap-2 mb-4'>
                   {question.tags.map((tag, idx) => (
-                    <span key={idx} className='px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 text-xs rounded-full border border-blue-200 dark:border-blue-800'>
+                    <span key={idx} className='px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full'>
                       {tag}
                     </span>
                   ))}
@@ -386,12 +534,21 @@ ORDER BY order_count DESC;`,
                     <span>{question.difficulty}</span>
                   </div>
                 )}
+                <div className='flex items-center ml-auto'>
+                  <span className='mr-2 text-gray-600 dark:text-gray-300'>Score:</span>
+                  <span className={`font-medium ${question.points === question.maxPoints ? "text-green-600 dark:text-green-400" : question.points > 0 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400"}`}>
+                    {question.points}/{question.maxPoints}
+                  </span>
+                </div>
               </div>
 
               {/* User's Solution */}
               <div className='mb-4'>
-                <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>Your Solution:</h4>
-                <div className='border border-gray-200 dark:border-gray-700 rounded-md p-4 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 overflow-auto shadow-inner'>
+                <div className='flex items-center justify-between mb-2'>
+                  <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>Your Solution:</h4>
+                  {question.correct && !question.correctAnswer && <span className='text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full'>Perfect Match ✓</span>}
+                </div>
+                <div className='border-l-4 border-blue-400 dark:border-blue-600 rounded-md p-4 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 overflow-auto shadow-inner'>
                   <pre className='whitespace-pre-wrap text-sm font-mono'>{question.userAnswer}</pre>
                 </div>
               </div>
@@ -399,51 +556,40 @@ ORDER BY order_count DESC;`,
               {/* Correct Solution (if available) */}
               {question.correctAnswer && (
                 <div className='mb-4'>
-                  <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>Correct Solution:</h4>
-                  <div className='border border-green-200 dark:border-green-800 rounded-md p-4 bg-green-50 dark:bg-green-900/20 text-gray-800 dark:text-gray-200 overflow-auto shadow-inner'>
+                  <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>Model Solution:</h4>
+                  <div className='border-l-4 border-green-400 dark:border-green-600 rounded-md p-4 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 overflow-auto shadow-inner'>
                     <pre className='whitespace-pre-wrap text-sm font-mono'>{question.correctAnswer}</pre>
                   </div>
                 </div>
               )}
-
-              <div className='flex flex-wrap items-center justify-between mt-4'>
-                <div className='flex items-center mb-2'>
-                  <span className='mr-2 text-gray-600 dark:text-gray-300'>Score:</span>
-                  <span className={`font-medium ${question.points === question.maxPoints ? "text-green-600 dark:text-green-400" : question.points > 0 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400"}`}>
-                    {question.points}/{question.maxPoints}
-                  </span>
-                </div>
-                {question.correct ? (
-                  <span className='flex items-center text-green-600 dark:text-green-400 text-sm'>
-                    <CheckCircle className='h-4 w-4 mr-1' /> Correct
-                  </span>
-                ) : (
-                  <span className='flex items-center text-red-600 dark:text-red-400 text-sm'>
-                    <XCircle className='h-4 w-4 mr-1' /> Incorrect
-                  </span>
-                )}
-              </div>
             </div>
-
-            {question.feedback && (
-              <div className='text-sm border-l-4 border-blue-500 pl-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-r-lg'>
-                <span className='font-medium text-blue-700 dark:text-blue-300'>Feedback:</span> <span className='text-gray-700 dark:text-gray-300'>{question.feedback}</span>
-              </div>
-            )}
           </div>
         );
 
       case "multipleChoice":
         return (
           <div className='mb-6 last:mb-2'>
-            <div className='bg-white dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-lg border border-gray-200 dark:border-gray-700 mb-4'>
-              <div className='font-medium mb-3 text-lg text-gray-900 dark:text-white'>{question.question}</div>
+            <div className='bg-white dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-lg border-l-4 border-purple-500 shadow-md'>
+              <div className='flex justify-between items-start mb-4'>
+                <div className='font-medium text-lg text-gray-900 dark:text-white mb-2'>{question.question}</div>
+                <div className='flex items-center'>
+                  {question.correct ? (
+                    <span className='flex items-center text-green-600 dark:text-green-400 text-sm font-medium px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full'>
+                      <CheckCircle className='h-4 w-4 mr-1' /> Correct
+                    </span>
+                  ) : (
+                    <span className='flex items-center text-red-600 dark:text-red-400 text-sm font-medium px-3 py-1 bg-red-100 dark:bg-red-900/30 rounded-full'>
+                      <XCircle className='h-4 w-4 mr-1' /> Incorrect
+                    </span>
+                  )}
+                </div>
+              </div>
 
               {/* Tags */}
               {question.tags && (
                 <div className='flex flex-wrap gap-2 mb-4'>
                   {question.tags.map((tag, idx) => (
-                    <span key={idx} className='px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 text-xs rounded-full border border-blue-200 dark:border-blue-800'>
+                    <span key={idx} className='px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 text-xs rounded-full'>
                       {tag}
                     </span>
                   ))}
@@ -461,55 +607,24 @@ ORDER BY order_count DESC;`,
                     <span>{question.difficulty}</span>
                   </div>
                 )}
-              </div>
-
-              <div className='grid grid-cols-1 gap-3 mb-4'>
-                {question.options.map((option, index) => (
-                  <div 
-                    key={index} 
-                    className={`p-3 rounded-lg flex items-center transition-all ${
-                      option === question.userAnswer 
-                        ? option === question.correctAnswer 
-                          ? "bg-green-100 dark:bg-green-900/40 border-2 border-green-500 dark:border-green-600 text-green-800 dark:text-green-200" 
-                          : "bg-red-100 dark:bg-red-900/40 border-2 border-red-500 dark:border-red-600 text-red-800 dark:text-red-200"
-                        : option === question.correctAnswer 
-                          ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300"
-                          : "bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    <span className='flex items-center justify-center w-6 h-6 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm'>
-                      {String.fromCharCode(65 + index)}
-                    </span>
-                    <span>{option}</span>
-                    {option === question.userAnswer && option === question.correctAnswer && (
-                      <CheckCircle className='ml-auto h-5 w-5 text-green-600 dark:text-green-400' />
-                    )}
-                    {option === question.userAnswer && option !== question.correctAnswer && (
-                      <XCircle className='ml-auto h-5 w-5 text-red-600 dark:text-red-400' />
-                    )}
-                    {option !== question.userAnswer && option === question.correctAnswer && (
-                      <CheckCircle className='ml-auto h-5 w-5 text-green-600 dark:text-green-400 opacity-50' />
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className='flex flex-wrap items-center justify-between'>
-                <div className='flex items-center mb-2'>
+                <div className='flex items-center ml-auto'>
                   <span className='mr-2 text-gray-600 dark:text-gray-300'>Score:</span>
                   <span className={`font-medium ${question.points === question.maxPoints ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                     {question.points}/{question.maxPoints}
                   </span>
                 </div>
-                {question.correct ? (
-                  <span className='flex items-center text-green-600 dark:text-green-400 text-sm'>
-                    <CheckCircle className='h-4 w-4 mr-1' /> Correct
-                  </span>
-                ) : (
-                  <span className='flex items-center text-red-600 dark:text-red-400 text-sm'>
-                    <XCircle className='h-4 w-4 mr-1' /> Incorrect
-                  </span>
-                )}
+              </div>
+
+              <div className='grid grid-cols-1 gap-3 mb-4'>
+                {question.options?.map((option, index) => (
+                  <div key={index} className={`p-4 rounded-lg flex items-center transition-all ${option === question.userAnswer ? (option === question.correctAnswer ? "bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 dark:border-green-600 text-green-800 dark:text-green-200" : "bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 dark:border-red-600 text-red-800 dark:text-red-200") : option === question.correctAnswer ? "bg-green-50 dark:bg-green-900/20 border-l-4 border-green-300 dark:border-green-800 text-green-800 dark:text-green-300" : "bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"}`}>
+                    <span className='flex items-center justify-center w-8 h-8 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium'>{String.fromCharCode(65 + index)}</span>
+                    <span className='font-medium'>{option}</span>
+                    {option === question.userAnswer && option === question.correctAnswer && <CheckCircle className='ml-auto h-5 w-5 text-green-600 dark:text-green-400' />}
+                    {option === question.userAnswer && option !== question.correctAnswer && <XCircle className='ml-auto h-5 w-5 text-red-600 dark:text-red-400' />}
+                    {option !== question.userAnswer && option === question.correctAnswer && <CheckCircle className='ml-auto h-5 w-5 text-green-600 dark:text-green-400' />}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -518,14 +633,27 @@ ORDER BY order_count DESC;`,
       case "trueFalse":
         return (
           <div className='mb-6 last:mb-2'>
-            <div className='bg-white dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-lg border border-gray-200 dark:border-gray-700 mb-4'>
-              <div className='font-medium mb-3 text-lg text-gray-900 dark:text-white'>{question.question}</div>
+            <div className='bg-white dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-lg border-l-4 border-amber-500 shadow-md'>
+              <div className='flex justify-between items-start mb-4'>
+                <div className='font-medium text-lg text-gray-900 dark:text-white mb-2'>{question.question}</div>
+                <div className='flex items-center'>
+                  {question.correct ? (
+                    <span className='flex items-center text-green-600 dark:text-green-400 text-sm font-medium px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full'>
+                      <CheckCircle className='h-4 w-4 mr-1' /> Correct
+                    </span>
+                  ) : (
+                    <span className='flex items-center text-red-600 dark:text-red-400 text-sm font-medium px-3 py-1 bg-red-100 dark:bg-red-900/30 rounded-full'>
+                      <XCircle className='h-4 w-4 mr-1' /> Incorrect
+                    </span>
+                  )}
+                </div>
+              </div>
 
               {/* Tags */}
               {question.tags && (
                 <div className='flex flex-wrap gap-2 mb-4'>
                   {question.tags.map((tag, idx) => (
-                    <span key={idx} className='px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 text-xs rounded-full border border-blue-200 dark:border-blue-800'>
+                    <span key={idx} className='px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-xs rounded-full'>
                       {tag}
                     </span>
                   ))}
@@ -543,95 +671,58 @@ ORDER BY order_count DESC;`,
                     <span>{question.difficulty}</span>
                   </div>
                 )}
-              </div>
-
-              <div className='grid grid-cols-2 gap-3 mb-4'>
-                <div 
-                  className={`p-3 rounded-lg flex items-center transition-all ${
-                    question.userAnswer === true 
-                      ? question.correctAnswer === true 
-                        ? "bg-green-100 dark:bg-green-900/40 border-2 border-green-500 dark:border-green-600 text-green-800 dark:text-green-200" 
-                        : "bg-red-100 dark:bg-red-900/40 border-2 border-red-500 dark:border-red-600 text-red-800 dark:text-red-200"
-                      : question.correctAnswer === true 
-                        ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300"
-                        : "bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  <span className='flex items-center justify-center w-6 h-6 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm'>T</span>
-                  <span>True</span>
-                  {question.userAnswer === true && question.correctAnswer === true && (
-                    <CheckCircle className='ml-auto h-5 w-5 text-green-600 dark:text-green-400' />
-                  )}
-                  {question.userAnswer === true && question.correctAnswer !== true && (
-                    <XCircle className='ml-auto h-5 w-5 text-red-600 dark:text-red-400' />
-                  )}
-                  {question.userAnswer !== true && question.correctAnswer === true && (
-                    <CheckCircle className='ml-auto h-5 w-5 text-green-600 dark:text-green-400 opacity-50' />
-                  )}
-                </div>
-                <div 
-                  className={`p-3 rounded-lg flex items-center transition-all ${
-                    question.userAnswer === false 
-                      ? question.correctAnswer === false 
-                        ? "bg-green-100 dark:bg-green-900/40 border-2 border-green-500 dark:border-green-600 text-green-800 dark:text-green-200" 
-                        : "bg-red-100 dark:bg-red-900/40 border-2 border-red-500 dark:border-red-600 text-red-800 dark:text-red-200"
-                      : question.correctAnswer === false 
-                        ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300"
-                        : "bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  <span className='flex items-center justify-center w-6 h-6 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm'>F</span>
-                  <span>False</span>
-                  {question.userAnswer === false && question.correctAnswer === false && (
-                    <CheckCircle className='ml-auto h-5 w-5 text-green-600 dark:text-green-400' />
-                  )}
-                  {question.userAnswer === false && question.correctAnswer !== false && (
-                    <XCircle className='ml-auto h-5 w-5 text-red-600 dark:text-red-400' />
-                  )}
-                  {question.userAnswer !== false && question.correctAnswer === false && (
-                    <CheckCircle className='ml-auto h-5 w-5 text-green-600 dark:text-green-400 opacity-50' />
-                  )}
-                </div>
-              </div>
-
-              <div className='flex flex-wrap items-center justify-between'>
-                <div className='flex items-center mb-2'>
+                <div className='flex items-center ml-auto'>
                   <span className='mr-2 text-gray-600 dark:text-gray-300'>Score:</span>
                   <span className={`font-medium ${question.points === question.maxPoints ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                     {question.points}/{question.maxPoints}
                   </span>
                 </div>
-                {question.correct ? (
-                  <span className='flex items-center text-green-600 dark:text-green-400 text-sm'>
-                    <CheckCircle className='h-4 w-4 mr-1' /> Correct
-                  </span>
-                ) : (
-                  <span className='flex items-center text-red-600 dark:text-red-400 text-sm'>
-                    <XCircle className='h-4 w-4 mr-1' /> Incorrect
-                  </span>
-                )}
+              </div>
+
+              <div className='grid grid-cols-2 gap-4 mb-2'>
+                <div className={`p-4 rounded-lg flex items-center justify-center transition-all ${question.userAnswer === true ? (question.correctAnswer === true ? "bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 dark:border-green-600 text-green-800 dark:text-green-200" : "bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 dark:border-red-600 text-red-800 dark:text-red-200") : question.correctAnswer === true ? "bg-green-50 dark:bg-green-900/20 border-l-4 border-green-300 dark:border-green-800 text-green-800 dark:text-green-300" : "bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"}`}>
+                  <span className='flex items-center justify-center w-8 h-8 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium'>T</span>
+                  <span className='font-medium flex-1'>True</span>
+                  {question.userAnswer === true && question.correctAnswer === true && <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-400' />}
+                  {question.userAnswer === true && question.correctAnswer !== true && <XCircle className='h-5 w-5 text-red-600 dark:text-red-400' />}
+                  {question.userAnswer !== true && question.correctAnswer === true && <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-400' />}
+                </div>
+                <div className={`p-4 rounded-lg flex items-center justify-center transition-all ${question.userAnswer === false ? (question.correctAnswer === false ? "bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 dark:border-green-600 text-green-800 dark:text-green-200" : "bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 dark:border-red-600 text-red-800 dark:text-red-200") : question.correctAnswer === false ? "bg-green-50 dark:bg-green-900/20 border-l-4 border-green-300 dark:border-green-800 text-green-800 dark:text-green-300" : "bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"}`}>
+                  <span className='flex items-center justify-center w-8 h-8 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium'>F</span>
+                  <span className='font-medium flex-1'>False</span>
+                  {question.userAnswer === false && question.correctAnswer === false && <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-400' />}
+                  {question.userAnswer === false && question.correctAnswer !== false && <XCircle className='h-5 w-5 text-red-600 dark:text-red-400' />}
+                  {question.userAnswer !== false && question.correctAnswer === false && <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-400' />}
+                </div>
               </div>
             </div>
-
-            {question.feedback && (
-              <div className='text-sm border-l-4 border-blue-500 pl-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-r-lg'>
-                <span className='font-medium text-blue-700 dark:text-blue-300'>Feedback:</span> <span className='text-gray-700 dark:text-gray-300'>{question.feedback}</span>
-              </div>
-            )}
           </div>
         );
 
       case "shortAnswer":
         return (
           <div className='mb-6 last:mb-2'>
-            <div className='bg-white dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-lg border border-gray-200 dark:border-gray-700 mb-4'>
-              <div className='font-medium mb-3 text-lg text-gray-900 dark:text-white'>{question.question}</div>
+            <div className='bg-white dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-lg border-l-4 border-indigo-500 shadow-md'>
+              <div className='flex justify-between items-start mb-4'>
+                <div className='font-medium text-lg text-gray-900 dark:text-white mb-2'>{question.question}</div>
+                <div className='flex items-center'>
+                  {question.correct ? (
+                    <span className='flex items-center text-green-600 dark:text-green-400 text-sm font-medium px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full'>
+                      <CheckCircle className='h-4 w-4 mr-1' /> Correct
+                    </span>
+                  ) : (
+                    <span className='flex items-center text-red-600 dark:text-red-400 text-sm font-medium px-3 py-1 bg-red-100 dark:bg-red-900/30 rounded-full'>
+                      <XCircle className='h-4 w-4 mr-1' /> Incorrect
+                    </span>
+                  )}
+                </div>
+              </div>
 
               {/* Tags */}
               {question.tags && (
                 <div className='flex flex-wrap gap-2 mb-4'>
                   {question.tags.map((tag, idx) => (
-                    <span key={idx} className='px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 text-xs rounded-full border border-blue-200 dark:border-blue-800'>
+                    <span key={idx} className='px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200 text-xs rounded-full'>
                       {tag}
                     </span>
                   ))}
@@ -649,50 +740,30 @@ ORDER BY order_count DESC;`,
                     <span>{question.difficulty}</span>
                   </div>
                 )}
-              </div>
-
-              {/* User's Answer */}
-              <div className='mb-4'>
-                <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>Your Answer:</h4>
-                <div className='border border-gray-200 dark:border-gray-700 rounded-md p-4 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 mb-4 shadow-inner'>
-                  <p className='whitespace-pre-wrap text-sm'>{question.userAnswer}</p>
-                </div>
-              </div>
-
-              {/* Correct Answer (if available) */}
-              {question.correctAnswer && (
-                <div className='mb-4'>
-                  <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>Correct Answer:</h4>
-                  <div className='border border-green-200 dark:border-green-800 rounded-md p-4 bg-green-50 dark:bg-green-900/20 text-gray-800 dark:text-gray-200 shadow-inner'>
-                    <p className='whitespace-pre-wrap text-sm'>{question.correctAnswer}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className='flex flex-wrap items-center justify-between mt-4'>
-                <div className='flex items-center mb-2'>
+                <div className='flex items-center ml-auto'>
                   <span className='mr-2 text-gray-600 dark:text-gray-300'>Score:</span>
                   <span className={`font-medium ${question.points === question.maxPoints ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                     {question.points}/{question.maxPoints}
                   </span>
                 </div>
-                {question.correct ? (
-                  <span className='flex items-center text-green-600 dark:text-green-400 text-sm'>
-                    <CheckCircle className='h-4 w-4 mr-1' /> Correct
-                  </span>
-                ) : (
-                  <span className='flex items-center text-red-600 dark:text-red-400 text-sm'>
-                    <XCircle className='h-4 w-4 mr-1' /> Incorrect
-                  </span>
-                )}
+              </div>
+
+              {/* User's Answer */}
+              <div className='mb-4'>
+                <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>Your Answer:</h4>
+                <div className='border-l-4 border-indigo-400 dark:border-indigo-600 rounded-md p-4 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 overflow-auto shadow-inner'>
+                  <p className='whitespace-pre-wrap text-sm'>{question.userAnswer}</p>
+                </div>
+              </div>
+
+              {/* Model Answer */}
+              <div>
+                <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>Model Answer:</h4>
+                <div className='border-l-4 border-green-400 dark:border-green-600 rounded-md p-4 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 overflow-auto shadow-inner'>
+                  <p className='whitespace-pre-wrap text-sm'>{question.correctAnswer}</p>
+                </div>
               </div>
             </div>
-
-            {question.feedback && (
-              <div className='text-sm border-l-4 border-blue-500 pl-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-r-lg'>
-                <span className='font-medium text-blue-700 dark:text-blue-300'>Feedback:</span> <span className='text-gray-700 dark:text-gray-300'>{question.feedback}</span>
-              </div>
-            )}
           </div>
         );
 
@@ -701,13 +772,10 @@ ORDER BY order_count DESC;`,
     }
   };
 
-  const getProgressColor = (score, maxScore) => {
-    const percentage = (score / maxScore) * 100;
-    if (percentage >= 90) return "bg-green-500";
-    if (percentage >= 75) return "bg-blue-500";
-    if (percentage >= 60) return "bg-yellow-500";
-    return "bg-red-500";
-  };
+  // If results are not ready, show the waiting animation
+  if (!isResultReady) {
+    return <ResultsNotLoaded isResultReady={isResultReady} />;
+  }
 
   return (
     <DashboardLayout userRole='student'>
